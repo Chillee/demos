@@ -26,7 +26,7 @@ function preload() {
     game.scale.scaleMode = Phaser.ScaleManager.USER_SCALE;
     if(window.innerWidth >= game.width * 2 && window.innerHeight + 1 >= game.height * 2) game.scale.setUserScale(2, 2, 0, 0);
 
-    game.renderer.renderSession.roundPixels = true;
+    game.renderer.renderSession.roundPixels = true;  
     Phaser.Canvas.setImageRenderingCrisp(this.game.canvas);
 
     game.load.spritesheet('bear', 'assets/tileset.png', 32, 32);
@@ -56,80 +56,14 @@ function create() {
 
     // Here we create the ground.
 
-    var level = [
-    '                        ',
-    '                        ',
-    '                        ',
-    '                        ',
-    '                        ',
-    '                        ',
-    '                        ',
-    '                        ',
-    '           2222         ',
-    '                        ',
-    '                  222   ',
-    '                        ',
-    '             222        ',
-    '                        ',
-    '       2223             ',
-    '          4b            ',
-    '          0222222       ',
-    '                        ',
-    '                   123  ',
-    '                  a8.4b ',
-    '22222222222222222229.022',
-    '........................',
-    '........................',
-    '........................'
-    ]
-
-    for(var y = 0; y < level.length; y++){
-        for(var x = 0; x < level[y].length; x++){
-            if(level[y].charAt(x) != ' '){
-                
-                switch(level[y].charAt(x)){
-                    case '1':
-                        var platform = platforms.create(x * 16, y * 16, 'sheet', 68);
-                        platform.body.immovable = true;
-                        break;
-                    case '2':
-                        var platform = platforms.create(x * 16, y * 16, 'sheet', 0);
-                        platform.body.immovable = true;
-                        break;
-                    case '3':
-                        var platform = platforms.create(x * 16, y * 16, 'sheet', 70);
-                        platform.body.immovable = true;
-                        break;
-                    case '4':
-                        var platform = platforms.create(x * 16, y * 16, 'sheet', 3);
-                        platform.body.immovable = true;
-                        break;
-                    case '8':
-                        var platform = platforms.create(x * 16, y * 16, 'sheet', 34);
-                        platform.body.immovable = true;
-                        break;
-                    case '9':
-                        var platform = platforms.create(x * 16, y * 16, 'sheet', 130);
-                        platform.body.immovable = true;
-                        break;
-                    case '0':
-                        var platform = platforms.create(x * 16, y * 16, 'sheet', 129);
-                        platform.body.immovable = true;
-                        break;
-                    case 'a':
-                        var platform = platforms.create(x * 16, y * 16, 'sheet', 4);
-                        platform.body.enable = false;
-                        break;
-                    case 'b':
-                        var platform = platforms.create(x * 16, y * 16, 'sheet', 5);
-                        platform.body.enable = false;
-                        break;
-                    default:
-                        var platform = platforms.create(x * 16, y * 16, 'sheet', 6);
-                        platform.body.immovable = true;
-                        break;
-                }
-            }
+    game.world.resize(game.width, 512);
+    for(var i = 0; i < game.width / 16; i++){
+        var platform = platforms.create(i*16, game.world.height - 96, 'sheet', 0);
+        platform.body.immovable = true;
+        var platform2 = platforms.create(i*16, game.world.height - 80, 'sheet', 32);
+        platform2.body.immovable = true;
+        for(var j = 0; j < 80 / 16; j++){
+            var platform3 = platforms.create(i*16, game.world.height - j*16, 'sheet', 64);
         }
     }
 
@@ -138,7 +72,7 @@ function create() {
 
     //  We need to enable physics on the player
     game.physics.arcade.enable(player);
-    player.body.setSize(22, 24, 5, 8);
+    player.body.setSize(22, 32, 5, 0);
     player.body.debug = true;
 
     //  Player physics properties. Give the little guy a slight bounce.
@@ -165,7 +99,7 @@ function create() {
     left.enableUpdate = true;
     left.onUpdate.add(leftFrameUpdate, this);
 
-    //game.camera.follow(player, Phaser.Camera.FOLLOW_PLATFORMER);
+    game.camera.follow(player, Phaser.Camera.FOLLOW_PLATFORMER);
     game.camera.roundPx = false;
 
     //  Our controls.
@@ -216,36 +150,22 @@ function render() {
     
 }
 
-var previousVelocity;
-function processCallback(p, platform){
-    previousVelocity = p.body.velocity.y;
-    return true;
-}
-
-function collisionCallback(p, platform){
-    if(p.body.touching.down && !p.body.wasTouching.down){
-        setParticleGround();
-
-        var shake = 0;
-        if(previousVelocity > 400) shake = .005;
-        if(previousVelocity > 480) shake = .01;
-        if(previousVelocity > 550) shake = .02;
-        game.camera.shake(shake, 100, true);
-
-        particleEmitter.x = p.body.x + p.body.halfWidth;
-        particleEmitter.y = p.body.y + p.body.height * .8;
-
-        particleEmitter.start(true, 500, null, 5);
-    }
-}
-
 function update() {
-    game.debug.bodyInfo(player, 32, 32);
     //  Collide the player and the stars with the platforms
-    game.physics.arcade.collide(player, platforms, collisionCallback, processCallback);
+    game.physics.arcade.collide(player, platforms);
     game.physics.arcade.collide(particleEmitter, platforms);
 
     setParticleDefaults();
+    if(player.body.touching.down && !player.body.wasTouching.down){
+        setParticleGround();
+
+        game.camera.shake(.005, 100, true);
+
+        particleEmitter.x = player.body.x + player.body.halfWidth;
+        particleEmitter.y = player.body.y + player.body.height * .8;
+        
+        particleEmitter.start(true, 500, null, 5);
+    }
 
     particleEmitter.forEachAlive(function(p){       p.alpha= p.lifespan / particleEmitter.lifespan; });
 
