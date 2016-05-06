@@ -26,7 +26,7 @@ function preload() {
     game.scale.scaleMode = Phaser.ScaleManager.USER_SCALE;
     if(window.innerWidth >= game.width * 2 && window.innerHeight + 1 >= game.height * 2) game.scale.setUserScale(2, 2, 0, 0);
 
-    game.renderer.renderSession.roundPixels = true;
+    game.renderer.renderSession.roundPixels = false;
     Phaser.Canvas.setImageRenderingCrisp(this.game.canvas);
 
     game.load.spritesheet('bear', 'assets/tileset.png', 32, 32);
@@ -86,49 +86,47 @@ function create() {
     for(var y = 0; y < level.length; y++){
         for(var x = 0; x < level[y].length; x++){
             if(level[y].charAt(x) != ' '){
-                
+                //console.log(x * 16 + ", " + y * 16);
+                var tile = 0;
+                var collide = true;
                 switch(level[y].charAt(x)){
                     case '1':
-                        var platform = platforms.create(x * 16, y * 16, 'sheet', 68);
-                        platform.body.immovable = true;
+                        tile = 68;
                         break;
                     case '2':
-                        var platform = platforms.create(x * 16, y * 16, 'sheet', 0);
-                        platform.body.immovable = true;
+                        tile = 0;
                         break;
                     case '3':
-                        var platform = platforms.create(x * 16, y * 16, 'sheet', 70);
-                        platform.body.immovable = true;
+                        tile = 70;
                         break;
                     case '4':
-                        var platform = platforms.create(x * 16, y * 16, 'sheet', 3);
-                        platform.body.immovable = true;
+                        tile = 3;
                         break;
                     case '8':
-                        var platform = platforms.create(x * 16, y * 16, 'sheet', 34);
-                        platform.body.immovable = true;
+                        tile = 34;
                         break;
                     case '9':
-                        var platform = platforms.create(x * 16, y * 16, 'sheet', 130);
-                        platform.body.immovable = true;
+                        tile = 130;
                         break;
                     case '0':
-                        var platform = platforms.create(x * 16, y * 16, 'sheet', 129);
-                        platform.body.immovable = true;
+                        tile = 129;
                         break;
                     case 'a':
-                        var platform = platforms.create(x * 16, y * 16, 'sheet', 4);
-                        platform.body.enable = false;
+                        tile = 4;
+                        collide = false;
                         break;
                     case 'b':
-                        var platform = platforms.create(x * 16, y * 16, 'sheet', 5);
-                        platform.body.enable = false;
+                        tile = 5;
+                        collide = false;
                         break;
                     default:
-                        var platform = platforms.create(x * 16, y * 16, 'sheet', 6);
-                        platform.body.immovable = true;
+                        tile = 6;
                         break;
                 }
+                var platform = platforms.create(x * 16, y * 16, 'sheet', tile);
+                platform.body.setSize(16, 16, 0, 0);
+                platform.body.immovable = true;
+                platform.body.enable = collide;
             }
         }
     }
@@ -166,7 +164,7 @@ function create() {
     left.onUpdate.add(leftFrameUpdate, this);
 
     //game.camera.follow(player, Phaser.Camera.FOLLOW_PLATFORMER);
-    game.camera.roundPx = false;
+    game.camera.roundPx = true;
 
     //  Our controls.
     cursors = game.input.keyboard.createCursorKeys();
@@ -217,7 +215,8 @@ function click() {
 }
 
 function render() {
-    game.debug.text(game.time.fps + ' fps', 2, 14, '#FFFFFF');
+    // game.debug.text(game.time.fps + ' fps', 2, 14, '#FFFFFF');
+    game.debug.bodyInfo(player, 32, 32);
 }
 
 var previousVelocity;
@@ -244,8 +243,7 @@ function collisionCallback(p, platform){
 }
 
 function update() {
-
-    //game.debug.bodyInfo(player, 32, 32);
+    
     //  Collide the player and the stars with the platforms
     game.physics.arcade.collide(player, platforms, collisionCallback, processCallback);
     // game.physics.arcade.collide(particleEmitter, platforms);
