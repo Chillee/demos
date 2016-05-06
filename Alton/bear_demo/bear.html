@@ -59,25 +59,25 @@ function create() {
     var level = [
     '                        ',
     '                        ',
+    '               2222     ',
     '                        ',
+    '           22           ',
     '                        ',
+    '     2222               ',
     '                        ',
-    '                        ',
-    '                        ',
-    '                        ',
-    '           2222         ',
+    '          22222         ',
     '                        ',
     '                  222   ',
     '                        ',
     '             222        ',
     '                        ',
-    '       2223             ',
-    '          4b            ',
-    '          0222222       ',
+    '       1223             ',
+    '       8..4b            ',
+    '       8..0222222       ',
     '                        ',
     '                   123  ',
-    '                  a8.4b ',
-    '22222222222222222229.022',
+    '   a1223b         a8.4b ',
+    '22229..0222222222229.022',
     '........................',
     '........................',
     '........................'
@@ -172,6 +172,7 @@ function create() {
     cursors = game.input.keyboard.createCursorKeys();
 
     game.input.onDown.add(click, this);
+    game.time.advancedTiming = true;
 }
 
 function setParticleDefaults(){
@@ -207,13 +208,16 @@ function leftFrameUpdate(){
 }
 
 function click() {
-    if(game.input.pointer1.y < game.height / 2 && player.body.touching.down){
+    if(game.input.pointer1.isDown && game.input.pointer1.y < game.height / 2 && player.body.touching.down){
+        player.body.velocity.y = -350;
+    }
+    if(game.input.pointer2.isDown && game.input.pointer2.y < game.height / 2 && player.body.touching.down){
         player.body.velocity.y = -350;
     }
 }
 
 function render() {
-    
+    game.debug.text(game.time.fps + ' fps', 2, 14, '#FFFFFF');
 }
 
 var previousVelocity;
@@ -240,10 +244,11 @@ function collisionCallback(p, platform){
 }
 
 function update() {
-    game.debug.bodyInfo(player, 32, 32);
+
+    //game.debug.bodyInfo(player, 32, 32);
     //  Collide the player and the stars with the platforms
     game.physics.arcade.collide(player, platforms, collisionCallback, processCallback);
-    game.physics.arcade.collide(particleEmitter, platforms);
+    // game.physics.arcade.collide(particleEmitter, platforms);
 
     setParticleDefaults();
 
@@ -252,21 +257,24 @@ function update() {
     //  Reset the players velocity (movement)
     player.body.velocity.x = 0;
 
-    if (cursors.left.isDown)
+    var moving = false;
+    if (cursors.left.isDown && !cursors.right.isDown)
     {
         //  Move to the left
-        player.body.velocity.x = -100;
+        player.body.velocity.x = -150;
 
         player.animations.play('left');
+        moving = true;
     }
-    else if (cursors.right.isDown)
+    if (cursors.right.isDown && !cursors.left.isDown)
     {
         //  Move to the right
-        player.body.velocity.x = 100;
+        player.body.velocity.x = 150;
 
         player.animations.play('right');
+        moving = true;
     }
-    else if(game.input.pointer1.isDown && game.input.pointer1.y > game.height / 2){
+    if(game.input.pointer1.isDown && game.input.pointer1.y > game.height / 2){
         if(game.input.pointer1.x > game.width / 2) {
             player.body.velocity.x = 150;
             player.animations.play('right');
@@ -275,12 +283,20 @@ function update() {
             player.body.velocity.x = -150;
             player.animations.play('left');
         }
+        moving = true;
     }
-    else
-    {
-        //  Stand still
-        player.animations.play('idle');
+    if(game.input.pointer2.isDown && game.input.pointer2.y > game.height / 2){
+        if(game.input.pointer2.x > game.width / 2) {
+            player.body.velocity.x = 150;
+            player.animations.play('right');
+        }
+        else {
+            player.body.velocity.x = -150;
+            player.animations.play('left');
+        }
+        moving = true;
     }
+    if(!moving) player.animations.play('idle');
 
     
     //  Allow the player to jump if they are touching the ground.
