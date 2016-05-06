@@ -71,6 +71,7 @@ function create() {
     '                        ',
     '             222        ',
     '                        ',
+    '                        ',
     '       1223             ',
     '       8..4b            ',
     '       8..0222222       ',
@@ -240,10 +241,12 @@ function collisionCallback(p, platform){
 
         particleEmitter.start(true, 500, null, 5);
     }
+    return true;
 }
 
 function update() {
-    
+
+    //game.debug.bodyInfo(player, 32, 32);
     //  Collide the player and the stars with the platforms
     game.physics.arcade.collide(player, platforms, collisionCallback, processCallback);
     // game.physics.arcade.collide(particleEmitter, platforms);
