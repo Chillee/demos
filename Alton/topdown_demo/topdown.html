@@ -75,14 +75,14 @@ function create() {
     player.body.collideWorldBounds = true;
 
     //  Our two animations, walking left and right.
-    player.animations.add('NW', [0, 0, 0, 0], 8, true);
+    player.animations.add('NW', [5, 21, 37, 53], 8, true);
     player.animations.add('N', [4, 20, 36, 52], 8, true);
     player.animations.add('NE', [3, 19, 35, 51], 8, true);
     player.animations.add('E', [2, 18, 34, 50], 8, true);
     player.animations.add('SE', [1, 17, 33, 49], 8, true);
     player.animations.add('S', [0, 16, 32, 48], 8, true);
-    player.animations.add('SW', [0, 0, 0, 0], 8, true);
-    player.animations.add('W', [0, 0, 0, 0], 8, true);
+    player.animations.add('SW', [7, 23, 39, 55], 8, true);
+    player.animations.add('W', [6, 22, 38, 54], 8, true);
     player.animations.add('idle', [0], 5, true);
 
     game.camera.follow(player, Phaser.Camera.FOLLOW_PLATFORMER);
