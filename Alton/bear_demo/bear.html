@@ -24,7 +24,8 @@ function preload() {
     game.scale.pageAlignHorizontally = true;
     game.scale.pageAlignVertically = true;
     game.scale.scaleMode = Phaser.ScaleManager.USER_SCALE;
-    if(window.innerWidth >= game.width * 2 && window.innerHeight + 1 >= game.height * 2) game.scale.setUserScale(2, 2, 0, 0);
+    if(window.innerWidth >= game.width * 2 && window.innerHeight + 1 >= game.height * 2)
+        game.scale.setUserScale(2, 2, 0, 0);
 
     game.renderer.renderSession.roundPixels = false;
     Phaser.Canvas.setImageRenderingCrisp(this.game.canvas);
