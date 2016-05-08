@@ -122,7 +122,7 @@ function render() {
 }
 
 var nextFire = 0;
-var fireRate = 200;
+var fireRate = 160;
 function shoot(){
     if (game.time.now > nextFire && bullets.countDead() > 0)
     {
@@ -133,7 +133,9 @@ function shoot(){
 
         bullet.reset(player.body.x + player.body.halfWidth, player.body.y + player.body.halfHeight);
 
-        game.physics.arcade.moveToPointer(bullet, 600);
+        game.physics.arcade.moveToPointer(bullet, game.rnd.integerInRange(700, 800));
+        bullet.body.velocity.x += game.rnd.realInRange(-50, 50);
+        bullet.body.velocity.y += game.rnd.realInRange(-50, 50);
     }
 }
 
