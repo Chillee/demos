@@ -29,7 +29,7 @@ function preload() {
     game.scale.scaleMode = Phaser.ScaleManager.USER_SCALE;
     if(window.innerWidth >= game.width * 2 && window.innerHeight + 1 >= game.height * 2) game.scale.setUserScale(2, 2, 0, 0);
 
-    game.renderer.renderSession.roundPixels = true;  
+    game.renderer.renderSession.roundPixels = false;  
     Phaser.Canvas.setImageRenderingCrisp(this.game.canvas);
 
     game.load.spritesheet('player', 'assets/tileset.png', 24, 48);
@@ -94,11 +94,16 @@ function create() {
 
     bullets = game.add.group();
     bullets.enableBody = true;
-    bullets.createMultiple(64, '12x12sheet', 514);
+    bullets.createMultiple(16, '12x12sheet');
     bullets.setAll('checkWorldBounds', true);
     bullets.setAll('outOfBoundsKill', true);
-    bullets.setAll('anchor.x', .5);
-    bullets.setAll('anchor.y', .5);
+    bullets.setAll('anchor.x', 0.5);
+    bullets.setAll('anchor.y', 0.5);
+    bullets.forEach(function(bullet){
+        bullet.body.setSize(8, 8, 0, 0);
+        bullet.animations.add('shoot', [514], 30, false);
+        bullet.animations.add('kill', [515, 516, 517], 40, false);
+    }, this);
 
     crosshair = game.add.sprite(0, 0, '24tileset', 128); //128
     crosshair.enableBody = false;
@@ -111,6 +116,9 @@ function create() {
 
 function render() {
     game.debug.text(game.time.fps, 32, 32);
+    bullets.forEach(function(bullet){
+        //game.debug.body(bullet);
+    }, this);
 }
 
 var nextFire = 0;
@@ -121,11 +129,17 @@ function shoot(){
         nextFire = game.time.now + fireRate;
 
         var bullet = bullets.getFirstDead();
+        bullet.animations.play('shoot');
 
         bullet.reset(player.body.x + player.body.halfWidth, player.body.y + player.body.halfHeight);
 
         game.physics.arcade.moveToPointer(bullet, 600);
     }
+}
+
+function bulletHit(bullet, wall){
+    bullet.body.velocity.set(0);
+    bullet.animations.play('kill', null, null, true);
 }
 
 function update() {
@@ -137,6 +151,7 @@ function update() {
 
     //  Collide the player and the stars with the platforms
     game.physics.arcade.collide(player, platforms);
+    game.physics.arcade.collide(bullets, platforms, bulletHit);
 
     //  Reset the players velocity (movement)
     player.body.velocity.set(0, 0);
