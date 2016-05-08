@@ -11,6 +11,7 @@
         }
         canvas {
             border: 1px solid black;
+            cursor: none;
         }
     </style>
 </head>
@@ -30,12 +31,16 @@ function preload() {
     Phaser.Canvas.setImageRenderingCrisp(this.game.canvas);
 
     game.load.spritesheet('player', 'assets/tileset.png', 24, 48);
+    game.load.spritesheet('24tileset', 'assets/tileset.png', 24, 24);
     game.load.image('sheet', 'assets/tileset.png');
+    game.load.spritesheet('12x12sheet', 'assets/tileset.png', 12, 12);
 }
 
 var player;
 var platforms;
+var bullets;
 var cursors;
+var crosshair;
 
 function create() {
 
@@ -85,6 +90,18 @@ function create() {
     player.animations.add('W', [6, 22, 38, 54], 8, true);
     player.animations.add('idle', [0], 5, true);
 
+    bullets = game.add.group();
+    bullets.enableBody = true;
+    bullets.createMultiple(64, '12x12sheet', 514);
+    bullets.setAll('checkWorldBounds', true);
+    bullets.setAll('outOfBoundsKill', true);
+    bullets.setAll('anchor.x', .5);
+    bullets.setAll('anchor.y', .5);
+
+    crosshair = game.add.sprite(0, 0, '24tileset', 128); //128
+    crosshair.enableBody = false;
+    crosshair.anchor.set(.5, .5);
+
     game.camera.follow(player, Phaser.Camera.FOLLOW_PLATFORMER);
     game.camera.roundPx = false;
     game.time.advancedTiming = true;
@@ -94,7 +111,28 @@ function render() {
     game.debug.text(game.time.fps, 32, 32);
 }
 
+var nextFire = 0;
+var fireRate = 200;
+function shoot(){
+    if (game.time.now > nextFire && bullets.countDead() > 0)
+    {
+        nextFire = game.time.now + fireRate;
+
+        var bullet = bullets.getFirstDead();
+
+        bullet.reset(player.body.x + player.body.halfWidth, player.body.y + player.body.halfHeight);
+
+        game.physics.arcade.moveToPointer(bullet, 600);
+    }
+}
+
 function update() {
+    crosshair.position.set(game.camera.x + game.input.mousePointer.x, game.camera.y + game.input.mousePointer.y);
+
+    if(game.input.activePointer.isDown){
+        shoot();
+    }
+
     //  Collide the player and the stars with the platforms
     game.physics.arcade.collide(player, platforms);
 
