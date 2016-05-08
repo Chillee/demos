@@ -2,7 +2,7 @@
 <html lang="en"> 
 <head> 
     <meta charset="UTF-8" />
-    <title>Phaser - Making your first game, part 8</title>
+    <title>bear</title>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/phaser/2.4.7/phaser.min.js"></script>
     <style type="text/css">
         body {
@@ -54,6 +54,8 @@ function create() {
 
     //  We will enable physics for any object that is created in this group
     platforms.enableBody = true;
+    platforms.physicsBodyType = Phaser.Physics.ARCADE;
+    game.physics.enable(platforms, Phaser.Physics.ARCADE);
 
     // Here we create the ground.
 
@@ -137,7 +139,7 @@ function create() {
     player = game.add.sprite(32, game.world.height - 150, 'bear');
 
     //  We need to enable physics on the player
-    game.physics.arcade.enable(player);
+    game.physics.enable(player, Phaser.Physics.ARCADE);
     player.body.setSize(22, 24, 5, 8);
     player.body.debug = true;
 
