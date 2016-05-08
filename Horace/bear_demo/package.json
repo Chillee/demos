@@ -1,0 +1,10 @@
+{
+    "name": "Bear Demo Multiplayer",
+    "version": "0.0.1",
+    "description": "Bear Demo Multiplayer",
+    "dependencies": {
+        "socket.io": "latest",
+        "express": "latest"
+    },
+    "author": "dev"
+}
