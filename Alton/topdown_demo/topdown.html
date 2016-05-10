@@ -2,7 +2,7 @@
 <html lang="en"> 
 <head> 
     <meta charset="UTF-8" />
-    <title>Phaser - Making your first game, part 8</title>
+    <title>topdown</title>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/phaser/2.4.7/phaser.min.js"></script>
     <style type="text/css">
         body {
@@ -21,7 +21,7 @@
 
 <script type="text/javascript">
 
-var game = new Phaser.Game(384, 384, Phaser.AUTO, '', { preload: preload, create: create, update: update, render: render }, false, false);
+var game = new Phaser.Game(768, 576, Phaser.AUTO, '', { preload: preload, create: create, update: update, render: render }, false, false);
 
 function preload() {
     game.scale.pageAlignHorizontally = true;
@@ -36,10 +36,15 @@ function preload() {
     game.load.spritesheet('24tileset', 'assets/tileset.png', 24, 24);
     game.load.image('sheet', 'assets/tileset.png');
     game.load.spritesheet('12x12sheet', 'assets/tileset.png', 12, 12);
+    game.load.image('level', 'assets/level.png');
+    game.load.image('tiny', 'assets/tiny.png');
 }
 
+
+var TILESIZE = 24;
+
 var player;
-var platforms;
+var walls;
 var bullets;
 var cursors;
 var crosshair;
@@ -48,31 +53,33 @@ function create() {
 
     //  We're going to be using physics, so enable the Arcade Physics system
     game.physics.startSystem(Phaser.Physics.ARCADE);
-    //  A simple background for our game
 
-    //  The platforms group contains the ground and the 2 ledges we can jump on
-    platforms = game.add.group();
+    walls = game.add.group();
 
-    //  We will enable physics for any object that is created in this group
-    platforms.enableBody = true;
-
-    // Here we create the ground.
-
-    game.world.resize(512, 512);
-    for(var i = 0; i < game.world.width / 24; i++){
-        var platform = platforms.create(i*24, game.world.height - 96, 'player', 127);
-        platform.body.immovable = true;
-        var platform2 = platforms.create(i*24, game.world.height - 80, 'player', 127);
-        platform2.body.immovable = true;
-        for(var j = 0; j < 80 / 16; j++){
-            var platform3 = platforms.create(i*24, game.world.height - j*24, 'player', 127);
+    var level = game.add.bitmapData(242, 180);
+    level.draw(game.cache.getImage('level'), 0, 0);
+    level.update();
+    game.world.resize(level.width * TILESIZE, level.height * TILESIZE);
+    for(var x = 0; x < level.width; x++){
+        for(var y = 0; y < level.height; y++){
+            var color = level.getPixelRGB(x, y);
+            console.log(color);
+            if(color.r == 0 && color.g == 0 && color.b == 0){
+                var wall = walls.create(x * TILESIZE, y * TILESIZE, 'tiny');
+                game.physics.arcade.enable(wall);
+                wall.autoCull = true;
+                wall.checkWorldBounds = true;
+                wall.body.immovable = true;
+            }
+            if(color.r == 255 && color.g == 0 && color.b == 0){
+                player = game.add.sprite(x * TILESIZE, y * TILESIZE, 'player');
+            }
         }
     }
 
-    game.add.sprite(0, 0, 'sheet');
+    // game.add.sprite(0, 0, 'level');
 
     // The player and its settings
-    player = game.add.sprite(32, game.world.height - 150, 'player');
 
     //  We need to enable physics on the player
     game.physics.arcade.enable(player);
@@ -82,14 +89,15 @@ function create() {
     player.body.collideWorldBounds = true;
 
     //  Our two animations, walking left and right.
-    player.animations.add('NW', [5, 21, 37, 53], 8, true);
-    player.animations.add('N', [4, 20, 36, 52], 8, true);
-    player.animations.add('NE', [3, 19, 35, 51], 8, true);
-    player.animations.add('E', [2, 18, 34, 50], 8, true);
-    player.animations.add('SE', [1, 17, 33, 49], 8, true);
-    player.animations.add('S', [0, 16, 32, 48], 8, true);
-    player.animations.add('SW', [7, 23, 39, 55], 8, true);
-    player.animations.add('W', [6, 22, 38, 54], 8, true);
+    var fps = 16;
+    player.animations.add('NW', [160, 161, 162, 163, 164, 165, 166, 167], fps, true);
+    player.animations.add('N', [128, 129, 130, 131, 132, 133, 134, 135], fps, true);
+    player.animations.add('NE', [96, 97, 98, 99, 100, 101, 102, 103], fps, true);
+    player.animations.add('E', [64, 65, 66, 67, 68, 69, 70, 71], fps, true);
+    player.animations.add('SE', [32, 33, 34, 35, 36, 37, 38, 39], fps, true);
+    player.animations.add('S', [0, 1, 2, 3, 4, 5, 6, 7], fps, true);
+    player.animations.add('SW', [224, 225, 226, 227, 228, 229, 230, 231], fps, true);
+    player.animations.add('W', [192, 193, 194, 195, 196, 197, 198, 199], fps, true);
     player.animations.add('idle', [0], 5, true);
 
     bullets = game.add.group();
@@ -109,7 +117,7 @@ function create() {
     crosshair.enableBody = false;
     crosshair.anchor.set(.5, .5);
 
-    game.camera.follow(player, Phaser.Camera.FOLLOW_PLATFORMER);
+    game.camera.follow(player, Phaser.Camera.FOLLOW_wallER);
     game.camera.roundPx = false;
     game.time.advancedTiming = true;
 }
@@ -151,9 +159,9 @@ function update() {
         shoot();
     }
 
-    //  Collide the player and the stars with the platforms
-    game.physics.arcade.collide(player, platforms);
-    game.physics.arcade.collide(bullets, platforms, bulletHit);
+    //  Collide the player and the stars with the walls
+    game.physics.arcade.collide(player, walls);
+    //game.physics.arcade.collide(bullets, walls, bulletHit);
 
     //  Reset the players velocity (movement)
     player.body.velocity.set(0, 0);
