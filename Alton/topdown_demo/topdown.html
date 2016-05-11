@@ -280,13 +280,13 @@ function update() {
 
     enemies.forEach(function(enemy){
         if(player.body.x > enemy.body.x)
-            enemy.body.velocity.x = 20;
+            enemy.body.velocity.x = 50;
         else
-            enemy.body.velocity.x = -20;
+            enemy.body.velocity.x = -50;
         if(player.body.y > enemy.body.y)
-            enemy.body.velocity.y = 20;
+            enemy.body.velocity.y = 50;
         else
-            enemy.body.velocity.y = -20;
+            enemy.body.velocity.y = -50;
     });
 
     //  Reset the players velocity (movement)
