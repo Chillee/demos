@@ -256,6 +256,7 @@ function bulletHitEnemy(bullet, enemy){
     bullet.body.velocity.set(0);
     bullet.animations.play('kill', null, null, true);
     bullet.health = 0;
+    if(enemy.health <= 0) return;
     enemy.health--;
     enemy.animations.play('hit');
     if(enemy.health <= 0){
@@ -274,8 +275,8 @@ function update() {
     game.physics.arcade.collide(player, layer);
     game.physics.arcade.collide(bullets, layer, bulletHitWall);
     game.physics.arcade.collide(bullets, enemies, bulletHitEnemy);
-    game.physics.arcade.collide(enemies, layer);
     game.physics.arcade.collide(enemies, enemies);
+    game.physics.arcade.collide(enemies, layer);
 
     enemies.forEach(function(enemy){
         if(player.body.x > enemy.body.x)
