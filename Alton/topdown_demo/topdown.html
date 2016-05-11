@@ -63,7 +63,7 @@ function create() {
     for(var x = 0; x < level.width; x++){
         for(var y = 0; y < level.height; y++){
             var color = level.getPixelRGB(x, y);
-            console.log(color);
+            // console.log(color);
             if(color.r == 0 && color.g == 0 && color.b == 0){
                 var wall = walls.create(x * TILESIZE, y * TILESIZE, 'tiny');
                 game.physics.arcade.enable(wall);
@@ -76,6 +76,8 @@ function create() {
             }
         }
     }
+    // walls.setAll('body.skipQuadTree', false);
+    console.log(walls.countLiving());
 
     // game.add.sprite(0, 0, 'level');
 
@@ -87,6 +89,7 @@ function create() {
     player.body.debug = true;
 
     player.body.collideWorldBounds = true;
+    // console.log(player);
 
     //  Our two animations, walking left and right.
     var fps = 16;
