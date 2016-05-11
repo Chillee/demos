@@ -18,8 +18,8 @@
 <body>
 
 <script type="text/javascript">
-
-var game = new Phaser.Game(768, 576, Phaser.AUTO, '', { preload: preload, create: create, update: update, render: render }, false, false);
+//768 x 576
+var game = new Phaser.Game(512, 380, Phaser.AUTO, '', { preload: preload, create: create, update: update, render: render }, false, false);
 
 function preload() {
     game.scale.pageAlignHorizontally = true;
@@ -190,15 +190,15 @@ function create() {
     bullets.setAll('anchor.y', 0.5);
     bullets.forEach(function(bullet){
         bullet.body.setSize(8, 8, 0, 0);
-        bullet.animations.add('shoot', [514], 30, false);
-        bullet.animations.add('kill', [515, 516, 517], 40, false);
+        bullet.animations.add('shoot', [146], 30, false);
+        bullet.animations.add('kill', [147, 148, 149], 40, false);
     }, this);
 
-    crosshair = game.add.sprite(0, 0, '24tileset', 128); //128
+    crosshair = game.add.sprite(0, 0, '24tileset', 40);
     crosshair.enableBody = false;
     crosshair.anchor.set(.5, .5);
 
-    game.camera.follow(player, Phaser.Camera.FOLLOW_wallER);
+    game.camera.follow(player, Phaser.Camera.FOLLOW_TOPDOWN_TIGHT);
     game.camera.roundPx = false;
     game.time.advancedTiming = true;
 }
@@ -239,7 +239,7 @@ function update() {
 
     //  Collide the player and the stars with the walls
     game.physics.arcade.collide(player, layer);
-    //game.physics.arcade.collide(bullets, walls, bulletHit);
+    game.physics.arcade.collide(bullets, layer, bulletHit);
 
     //  Reset the players velocity (movement)
     player.body.velocity.set(0, 0);
