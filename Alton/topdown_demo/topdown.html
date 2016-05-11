@@ -11,9 +11,7 @@
         }
         canvas {
             border: 1px solid black;
-            cursor: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwA  ADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjbQg61aAAAADUlEQVQYV2P4//8/IwAI/QL/+TZZdwAAAABJRU5ErkJggg=='),
-            url(images/blank.cur),
-            none !important;
+            cursor: none !important;
         }
     </style>
 </head>
@@ -29,11 +27,12 @@ function preload() {
     game.scale.scaleMode = Phaser.ScaleManager.USER_SCALE;
     if(window.innerWidth >= game.width * 2 && window.innerHeight + 1 >= game.height * 2) game.scale.setUserScale(2, 2, 0, 0);
 
-    game.renderer.renderSession.roundPixels = false;  
+    game.renderer.renderSession.roundPixels = false;
     Phaser.Canvas.setImageRenderingCrisp(this.game.canvas);
 
     game.load.spritesheet('player', 'assets/tileset.png', 24, 48);
     game.load.spritesheet('24tileset', 'assets/tileset.png', 24, 24);
+    game.load.spritesheet('12tileset', 'assets/tileset.png', 12, 12);
     game.load.image('sheet', 'assets/tileset.png');
     game.load.spritesheet('12x12sheet', 'assets/tileset.png', 12, 12);
     game.load.image('level', 'assets/level.png');
@@ -48,34 +47,116 @@ var walls;
 var bullets;
 var cursors;
 var crosshair;
+var floorLayer;
+var wallLayer;
+
+function neighbors(array, x, y){
+    var correct = true;
+    var wallIndexes = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
+    for(var xx = x - 1; xx <= x + 1; xx++){
+        for(var yy = y - 1; yy <= y + 1; yy++){
+            var tile = walls.getTile(xx, yy, layer);
+            var index;
+            if(tile == null) index = -1;
+            else index = tile.index;
+            if(array[(xx - x + 1) + 3*(yy - y + 1)] == 0 && wallIndexes.indexOf(index) != -1){
+                correct = false;
+            }
+            if(array[(xx - x + 1) + 3*(yy - y + 1)] == 0 && index == -1){
+                correct = false;
+            }
+            if(array[(xx - x + 1) + 3*(yy - y + 1)] == 1 && wallIndexes.indexOf(index) == -1){
+                correct = false;
+            }
+        }
+    }
+    return correct;
+}
 
 function create() {
 
     //  We're going to be using physics, so enable the Arcade Physics system
     game.physics.startSystem(Phaser.Physics.ARCADE);
 
-    walls = game.add.group();
+    var levelW = 141;
+    var levelH = 105;
 
-    var level = game.add.bitmapData(242, 180);
+    walls = game.add.tilemap();
+    walls.addTilesetImage('mapTileset', '24tileset', TILESIZE, TILESIZE);
+    layer = walls.create('walls', levelW, levelH, TILESIZE, TILESIZE);
+    walls.tileWidth = TILESIZE;
+    walls.tileHeight = TILESIZE;
+    walls.width = levelW;
+    walls.height = levelH;
+
+    var level = game.add.bitmapData(141, 105);
     level.draw(game.cache.getImage('level'), 0, 0);
     level.update();
     game.world.resize(level.width * TILESIZE, level.height * TILESIZE);
     for(var x = 0; x < level.width; x++){
         for(var y = 0; y < level.height; y++){
             var color = level.getPixelRGB(x, y);
-            console.log(color);
             if(color.r == 0 && color.g == 0 && color.b == 0){
-                var wall = walls.create(x * TILESIZE, y * TILESIZE, 'tiny');
-                game.physics.arcade.enable(wall);
-                wall.autoCull = true;
-                wall.checkWorldBounds = true;
-                wall.body.immovable = true;
+                walls.putTile(8, x, y, layer);
+            }
+            if(color.r == 255 && color.g == 255 && color.b == 255){
+                walls.putTile(20, x, y, layer);
             }
             if(color.r == 255 && color.g == 0 && color.b == 0){
+                walls.putTile(20, x, y, layer);
                 player = game.add.sprite(x * TILESIZE, y * TILESIZE, 'player');
             }
         }
     }
+    walls.forEach(function(tile){
+        if(tile.index == -1) return;
+        if(tile.index == 20){
+            if(neighbors([2, 1, 2, 2, 2, 2, 2, 2, 2], tile.x, tile.y)){
+                tile.index = 21;
+            }
+        }
+        else {
+            if(neighbors([2, 1, 2, 0, 2, 2, 2, 1, 2], tile.x, tile.y)){ // left facing wall
+                tile.index = 13;
+            }
+            else if(neighbors([2, 1, 2, 2, 2, 0, 2, 1, 2], tile.x, tile.y)){ // right facing wall
+                tile.index = 18;
+            }
+            else if(neighbors([2, 0, 2, 1, 2, 1, 2, 2, 2], tile.x, tile.y)){ // top facing wall
+                tile.index = 9;
+            }
+            else if(neighbors([2, 2, 2, 1, 2, 1, 2, 0, 2], tile.x, tile.y)){ // bottom facing wall
+                tile.index = 19;
+            }
+            else if(neighbors([2, 0, 2, 0, 2, 1, 2, 1, 2], tile.x, tile.y)){ // nw corner
+                tile.index = 8;
+            }
+            else if(neighbors([2, 0, 2, 1, 2, 0, 2, 1, 2], tile.x, tile.y)){ // ne corner
+                tile.index = 10;
+            }
+            else if(neighbors([2, 1, 2, 1, 2, 0, 2, 0, 2], tile.x, tile.y)){ // se corner
+                tile.index = 15;
+            }
+            else if(neighbors([2, 1, 2, 0, 2, 1, 2, 0, 2], tile.x, tile.y)){ // sw corner
+                tile.index = 14;
+            }
+            else if(neighbors([2, 1, 0, 2, 2, 1, 2, 2, 2], tile.x, tile.y)){ // nw inside corner
+                tile.index = 16;
+            }
+            else if(neighbors([0, 1, 2, 1, 2, 2, 2, 2, 2], tile.x, tile.y)){ // ne inside corner
+                tile.index = 17;
+            }
+            else if(neighbors([2, 2, 2, 2, 2, 1, 2, 1, 0], tile.x, tile.y)){ // se inside corner
+                tile.index = 11;
+            }
+            else if(neighbors([2, 2, 2, 1, 2, 2, 0, 1, 2], tile.x, tile.y)){ // sw inside corner
+                tile.index = 12;
+            }
+        }
+    }, game);
+
+    game.physics.arcade.enable(layer);
+    walls.setCollisionBetween(8, 19, true, layer);
 
     // game.add.sprite(0, 0, 'level');
 
@@ -83,7 +164,7 @@ function create() {
 
     //  We need to enable physics on the player
     game.physics.arcade.enable(player);
-    player.body.setSize(12, 21, 6, 24);
+    player.body.setSize(12, 24, 6, 22);
     player.body.debug = true;
 
     player.body.collideWorldBounds = true;
@@ -123,10 +204,7 @@ function create() {
 }
 
 function render() {
-    game.debug.text(game.time.fps, 32, 32);
-    bullets.forEach(function(bullet){
-        //game.debug.body(bullet);
-    }, this);
+    //game.debug.text(game.time.fps, 32, 32);
 }
 
 var nextFire = 0;
@@ -160,13 +238,13 @@ function update() {
     }
 
     //  Collide the player and the stars with the walls
-    game.physics.arcade.collide(player, walls);
+    game.physics.arcade.collide(player, layer);
     //game.physics.arcade.collide(bullets, walls, bulletHit);
 
     //  Reset the players velocity (movement)
     player.body.velocity.set(0, 0);
 
-    var v = 100;
+    var v = 200;
     if(game.input.keyboard.isDown(Phaser.Keyboard.W)){
         player.body.velocity.y -= v;
     }
