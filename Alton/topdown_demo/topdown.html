@@ -171,6 +171,7 @@ function create() {
         enemy.animations.add('hit', [520], 8, false);
         enemy.animations.add('kill', [520], 8, false);
         enemy.animations.play('move');
+        enemy.animations.currentAnim.setFrame(game.rnd.integerInRange(0, 7), true);
         game.physics.arcade.enable(enemy);
 
         enemy.events.onAnimationComplete.add(function(enemy){
