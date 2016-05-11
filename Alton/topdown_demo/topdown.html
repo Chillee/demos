@@ -42,6 +42,7 @@ function preload() {
 
 var TILESIZE = 24;
 
+var enemies;
 var player;
 var walls;
 var bullets;
@@ -80,8 +81,8 @@ function create() {
 
     game.stage.backgroundColor = '#222028';
 
-    var levelW = 141;
-    var levelH = 105;
+    var levelW = 129;
+    var levelH = 92;
 
     walls = game.add.tilemap();
     walls.addTilesetImage('mapTileset', '24tileset', TILESIZE, TILESIZE);
@@ -91,7 +92,9 @@ function create() {
     walls.width = levelW;
     walls.height = levelH;
 
-    var level = game.add.bitmapData(141, 105);
+    enemies = game.add.group();
+
+    var level = game.add.bitmapData(levelW, levelH);
     level.draw(game.cache.getImage('level'), 0, 0);
     level.update();
     game.world.resize(level.width * TILESIZE, level.height * TILESIZE);
@@ -103,6 +106,10 @@ function create() {
             }
             if(color.r == 255 && color.g == 255 && color.b == 255){
                 walls.putTile(20, x, y, layer);
+            }
+            if(color.r == 0 && color.g == 255 && color.b == 0){
+                walls.putTile(20, x, y, layer);
+                enemies.create(x * TILESIZE, y * TILESIZE, '24tileset');
             }
             if(color.r == 255 && color.g == 0 && color.b == 0){
                 walls.putTile(20, x, y, layer);
@@ -159,8 +166,19 @@ function create() {
 
     game.physics.arcade.enable(layer);
     walls.setCollisionBetween(8, 19, true, layer);
+    enemies.forEach(function(enemy){
+        enemy.animations.add('move', [512, 513, 514, 515, 516, 517, 518, 519], 15, true);
+        enemy.animations.add('hit', [520], 8, false);
+        enemy.animations.add('kill', [520], 8, false);
+        enemy.animations.play('move');
+        game.physics.arcade.enable(enemy);
 
-    // game.add.sprite(0, 0, 'level');
+        enemy.events.onAnimationComplete.add(function(enemy){
+            if(enemy.animations.currentAnim.name == 'hit')
+                enemy.animations.play('move');
+        });
+        enemy.health = 3;
+    }, game);
 
     // The player and its settings
 
@@ -190,6 +208,7 @@ function create() {
     bullets.setAll('outOfBoundsKill', true);
     bullets.setAll('anchor.x', 0.5);
     bullets.setAll('anchor.y', 0.5);
+    bullets.setAll('body.mass', 0.1);
     bullets.forEach(function(bullet){
         bullet.body.setSize(8, 8, 0, 0);
         bullet.animations.add('shoot', [146], 30, false);
@@ -227,9 +246,20 @@ function shoot(){
     }
 }
 
-function bulletHit(bullet, wall){
+function bulletHitWall(bullet, wall){
     bullet.body.velocity.set(0);
     bullet.animations.play('kill', null, null, true);
+}
+function bulletHitEnemy(bullet, enemy){
+    if(bullet.health == 0) return;
+    bullet.body.velocity.set(0);
+    bullet.animations.play('kill', null, null, true);
+    bullet.health = 0;
+    enemy.health--;
+    enemy.animations.play('hit');
+    if(enemy.health <= 0){
+        enemy.animations.play('kill', null, null, true);
+    }
 }
 
 function update() {
@@ -241,7 +271,21 @@ function update() {
 
     //  Collide the player and the stars with the walls
     game.physics.arcade.collide(player, layer);
-    game.physics.arcade.collide(bullets, layer, bulletHit);
+    game.physics.arcade.collide(bullets, layer, bulletHitWall);
+    game.physics.arcade.collide(bullets, enemies, bulletHitEnemy);
+    game.physics.arcade.collide(enemies, layer);
+    game.physics.arcade.collide(enemies, enemies);
+
+    enemies.forEach(function(enemy){
+        if(player.body.x > enemy.body.x)
+            enemy.body.velocity.x = 20;
+        else
+            enemy.body.velocity.x = -20;
+        if(player.body.y > enemy.body.y)
+            enemy.body.velocity.y = 20;
+        else
+            enemy.body.velocity.y = -20;
+    });
 
     //  Reset the players velocity (movement)
     player.body.velocity.set(0, 0);
