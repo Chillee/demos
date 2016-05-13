@@ -22,35 +22,47 @@
 <script type="text/javascript">
 
 var game = new Phaser.Game(384, 384, Phaser.AUTO, '', { preload: preload, create: create, update: update, render: render }, false, false);
-var peer = new Peer({
-  host: location.hostname,
-  port: location.port || (location.protocol === 'https:' ? 443 : 80),
-  path: '/peerjs'
-})
+// var peer = new Peer(Math.random().toString(36).substr(2, 2),{
+//   host: location.hostname,
+//   port: location.port || (location.protocol === 'https:' ? 443 : 80),
+//   path: '/peerjs'
+// })
+var peerString = Math.random().toString(36).substr(2, 2);
+var peer = new Peer(peerString,{key: 'lwjd5qra8257b9'});
 var connect;
 var state;
 var isReceiving;
 var conn;
-var peerData = {velocityX: 0, velocityY: 0, x: 50, y: 150};
+var peerData = [];
+for (var i=0; i<30; i++){
+  peerData = peerData.concat({tick:0, velocityX: 0, velocityY: 0, x: 50, y: 150});
+}
+
+console.log(peerData);
 console.log(peer);
 peer.on('connection', function(conn){
   console.log(conn);
   isReceiving = false;
   connect = conn;
-
 })
 $('#isReceiving').change(function(){
   isReceiving = this.checked;
-  console.log(isReceiving);
   if (isReceiving){
     conn.on('data', function(data){
-          peerData = data;
+          for (var i=peerData.length-1; i>=1; i--){
+            peerData[i] = peerData[i-1];
+          }
+          peerData[0]= data;
+
         })
     }
 })
 $('button').click(function(e){
   e.preventDefault;
-  conn = peer.connect($('#connect').val());
+  conn = peer.connect($('#connect').val(), {
+    reliable: false,
+    metaData: "fuck this"
+  });
 })
 
 
@@ -342,16 +354,32 @@ function update() {
       {
           player.body.velocity.y = -350;
       }
-      connect.send({velocityX: player.body.velocity.x,
+      connect.send({tick: Date.now(),
+                    velocityX: player.body.velocity.x,
                     velocityY: player.body.velocity.y,
                  x: player.x,
                  y: player.y})
   } else {
+    var idx = 0;
+    var minDist = 10000;
+    var curTime = Date.now() - 1000;
+    for (var i=0; i<peerData.length; i++){
+      // console.log(Math.abs(peerData[i].tick- curTime));
+      if (Math.abs(peerData[i].tick- curTime) < minDist){
+        idx = i;
+        minDist = Math.abs(peerData[i].tick - curTime);
+      }
+    }
+    console.log(idx, minDist, Date.now() - 1000);
     console.log(peerData);
-    player.body.velocity.x = peerData.velocityX;
-    player.body.velocity.y = peerData.velocityY;
-    player.x = peerData.x;
-    player.y = peerData.y;
+    game.debug.text(peerString, 5, 15);
+    game.debug.text(idx, 10, 100);
+
+
+    player.body.velocity.x = peerData[idx].velocityX;
+    player.body.velocity.y = peerData[idx].velocityY;
+    player.x = peerData[idx].x;
+    player.y = peerData[idx].y;
   }
 
 }
