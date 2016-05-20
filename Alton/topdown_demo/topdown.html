@@ -37,11 +37,18 @@ function preload() {
     game.load.spritesheet('12x12sheet', 'assets/tileset.png', 12, 12);
     game.load.image('level', 'assets/level.png');
     game.load.image('tiny', 'assets/tiny.png');
+
+    game.load.audio('shoot', 'assets/audio/shoot.wav');
+    game.load.audio('wallHit', 'assets/audio/click.wav');
+    game.load.audio('enemyHit', 'assets/audio/hit.wav');
 }
 
 
 var TILESIZE = 24;
 
+var shootSound;
+var wallHitSound;
+var enemyHitSound;
 var enemies;
 var player;
 var walls;
@@ -92,7 +99,7 @@ function create() {
     walls.width = levelW;
     walls.height = levelH;
 
-    enemies = game.add.group();
+    enemies = game.add.physicsGroup(Phaser.Physics.ARCADE);
 
     var level = game.add.bitmapData(levelW, levelH);
     level.draw(game.cache.getImage('level'), 0, 0);
@@ -172,13 +179,17 @@ function create() {
         enemy.animations.add('kill', [520], 8, false);
         enemy.animations.play('move');
         enemy.animations.currentAnim.setFrame(game.rnd.integerInRange(0, 7), true);
-        game.physics.arcade.enable(enemy);
+
+        var speed = 70;
+        enemy.body.velocity.set(game.rnd.integerInRange(-speed, speed), game.rnd.integerInRange(-speed, speed));
+        enemy.body.bounce.set(1, 1);
+        enemy.body.collideWorldBounds = true;
 
         enemy.events.onAnimationComplete.add(function(enemy){
             if(enemy.animations.currentAnim.name == 'hit')
                 enemy.animations.play('move');
         });
-        enemy.health = 3;
+        enemy.health = 1;
     }, game);
 
     // The player and its settings
@@ -204,7 +215,7 @@ function create() {
 
     bullets = game.add.group();
     bullets.enableBody = true;
-    bullets.createMultiple(16, '12x12sheet');
+    bullets.createMultiple(64, '12x12sheet');
     bullets.setAll('checkWorldBounds', true);
     bullets.setAll('outOfBoundsKill', true);
     bullets.setAll('anchor.x', 0.5);
@@ -212,8 +223,8 @@ function create() {
     bullets.setAll('body.mass', 0.1);
     bullets.forEach(function(bullet){
         bullet.body.setSize(8, 8, 0, 0);
-        bullet.animations.add('shoot', [146], 30, false);
-        bullet.animations.add('kill', [147, 148, 149], 40, false);
+        bullet.animations.add('shoot', [146], 50, false);
+        bullet.animations.add('kill', [147, 148, 149], 50, false);
     }, this);
 
     crosshair = game.add.sprite(0, 0, '24tileset', 40);
@@ -223,14 +234,18 @@ function create() {
     game.camera.follow(player, Phaser.Camera.FOLLOW_TOPDOWN_TIGHT);
     game.camera.roundPx = false;
     game.time.advancedTiming = true;
+
+    shootSound = game.add.audio('shoot');
+    wallHitSound = game.add.audio('wallHit');
+    enemyHitSound = game.add.audio('enemyHit');
 }
 
 function render() {
-    //game.debug.text(game.time.fps, 32, 32);
+    game.debug.text(enemies.countLiving(), 32, 32);
 }
 
 var nextFire = 0;
-var fireRate = 160;
+var fireRate = 100;
 function shoot(){
     if (game.time.now > nextFire && bullets.countDead() > 0)
     {
@@ -244,12 +259,15 @@ function shoot(){
         game.physics.arcade.moveToPointer(bullet, game.rnd.integerInRange(700, 800));
         bullet.body.velocity.x += game.rnd.realInRange(-50, 50);
         bullet.body.velocity.y += game.rnd.realInRange(-50, 50);
+
+        shootSound.play();
     }
 }
 
 function bulletHitWall(bullet, wall){
     bullet.body.velocity.set(0);
     bullet.animations.play('kill', null, null, true);
+    wallHitSound.play();
 }
 function bulletHitEnemy(bullet, enemy){
     if(bullet.health == 0) return;
@@ -260,8 +278,10 @@ function bulletHitEnemy(bullet, enemy){
     enemy.health--;
     enemy.animations.play('hit');
     if(enemy.health <= 0){
+        enemy.body.velocity.set(0, 0);
         enemy.animations.play('kill', null, null, true);
     }
+    enemyHitSound.play();
 }
 
 function update() {
@@ -275,18 +295,18 @@ function update() {
     game.physics.arcade.collide(player, layer);
     game.physics.arcade.collide(bullets, layer, bulletHitWall);
     game.physics.arcade.collide(bullets, enemies, bulletHitEnemy);
-    game.physics.arcade.collide(enemies, enemies);
     game.physics.arcade.collide(enemies, layer);
+    game.physics.arcade.collide(enemies);
 
     enemies.forEach(function(enemy){
-        if(player.body.x > enemy.body.x)
+        /*if(player.body.x > enemy.body.x)
             enemy.body.velocity.x = 50;
         else
             enemy.body.velocity.x = -50;
         if(player.body.y > enemy.body.y)
             enemy.body.velocity.y = 50;
         else
-            enemy.body.velocity.y = -50;
+            enemy.body.velocity.y = -50;*/
     });
 
     //  Reset the players velocity (movement)
