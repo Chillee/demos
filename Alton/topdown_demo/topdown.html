@@ -86,7 +86,7 @@ function create() {
     //  We're going to be using physics, so enable the Arcade Physics system
     game.physics.startSystem(Phaser.Physics.ARCADE);
 
-    game.stage.backgroundColor = '#222028';
+    game.stage.backgroundColor = '#1c1824';
 
     var levelW = 129;
     var levelH = 92;
@@ -200,10 +200,11 @@ function create() {
     player.body.debug = true;
 
     player.body.collideWorldBounds = true;
+    // console.log(player);
 
     //  Our two animations, walking left and right.
     var fps = 16;
-    player.animations.add('NW', [160, 161, 162, 163, 164, 165, 166, 167], fps, true);
+    player.animations.add('NW', [161, 162, 163, 164, 165, 166, 167], fps, true);
     player.animations.add('N', [128, 129, 130, 131, 132, 133, 134, 135], fps, true);
     player.animations.add('NE', [96, 97, 98, 99, 100, 101, 102, 103], fps, true);
     player.animations.add('E', [64, 65, 66, 67, 68, 69, 70, 71], fps, true);
@@ -300,13 +301,13 @@ function update() {
 
     enemies.forEach(function(enemy){
         /*if(player.body.x > enemy.body.x)
-            enemy.body.velocity.x = 50;
+            enemy.body.velocity.x = 10;
         else
-            enemy.body.velocity.x = -50;
+            enemy.body.velocity.x = -10;
         if(player.body.y > enemy.body.y)
-            enemy.body.velocity.y = 50;
+            enemy.body.velocity.y = 10;
         else
-            enemy.body.velocity.y = -50;*/
+            enemy.body.velocity.y = -10;*/
     });
 
     //  Reset the players velocity (movement)
