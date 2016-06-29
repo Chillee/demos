@@ -2,6 +2,9 @@ var Player = function(){
 
 };
 
+var touchingDoor = false;
+var movementLocked = false;
+
 Player.prototype = {
 
     create: function () {
@@ -23,6 +26,19 @@ Player.prototype = {
 	    sprite.animations.add('idle', [0], 5, true);
 
 	    sprite.animations.play('S');
+
+	    game.camera.onFadeComplete.add(function() {
+			var tileX = Math.floor(sprite.body.x / 16);
+			var tileY = Math.floor(sprite.body.y / 16);
+
+			if(tileX == 3 && tileY == 2) sprite.position.set(20 * 16, 26 * 16);
+			if(tileX == 25 && tileY == 4) sprite.position.set(3 * 16, 2 * 16);
+			if(tileX == 20 && tileY == 26) sprite.position.set(25 * 16, 4 * 16);
+
+			movementLocked = false;
+
+			game.camera.flash('#000000', 1000);
+		});
     },
 
     update: function () {
@@ -30,18 +46,20 @@ Player.prototype = {
     	sprite.body.velocity.set(0, 0);
 
 	    var v = 100;
-	    if(game.input.keyboard.isDown(Phaser.Keyboard.W)){
-	        sprite.body.velocity.y -= v;
-	    }
-	    if(game.input.keyboard.isDown(Phaser.Keyboard.A)){
-	        sprite.body.velocity.x -= v;
-	    }
-	    if(game.input.keyboard.isDown(Phaser.Keyboard.S)){
-	        sprite.body.velocity.y += v;
-	    }
-	    if(game.input.keyboard.isDown(Phaser.Keyboard.D)){
-	        sprite.body.velocity.x += v;
-	    }
+	    if(!movementLocked){
+		    if(game.input.keyboard.isDown(Phaser.Keyboard.W)){
+		        sprite.body.velocity.y -= v;
+		    }
+		    if(game.input.keyboard.isDown(Phaser.Keyboard.A)){
+		        sprite.body.velocity.x -= v;
+		    }
+		    if(game.input.keyboard.isDown(Phaser.Keyboard.S)){
+		        sprite.body.velocity.y += v;
+		    }
+		    if(game.input.keyboard.isDown(Phaser.Keyboard.D)){
+		        sprite.body.velocity.x += v;
+		    }
+		}
 
 	    if(sprite.body.velocity.x == -v && sprite.body.velocity.y == -v){
 	        sprite.animations.play('NW');
@@ -71,9 +89,23 @@ Player.prototype = {
 	        //  Stand still
 	        sprite.animations.stop(null, true);
 	    }
+
+	    if(game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)){
+		    if(touchingDoor && (sprite.animations.name == 'N' || sprite.animations.name == 'NW' || sprite.animations.name == 'NE')){
+		    	game.camera.fade('#000000', 1000);
+		    	movementLocked = true;
+			}
+		}
+
+	    touchingDoor = false;
     },
 
     render: function () {
     	
+    },
+
+    touchingDoor: function() {
+    	console.log("touched door");
+    	touchingDoor = true;
     }
 };

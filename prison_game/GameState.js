@@ -43,6 +43,8 @@ Game.GameState.prototype = {
     	player = new Player();
     	player.create();
 
+    	map.setTileIndexCallback(59, player.touchingDoor, this);
+
     	topLayer = map.createLayer('AbovePlayer');
 
     	game.camera.follow(sprite, Phaser.Camera.FOLLOW_TOPDOWN_TIGHT);
