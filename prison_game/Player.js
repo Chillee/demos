@@ -1,13 +1,11 @@
 var Player = function(){
-
+	
 };
-
-var sprite;
 
 Player.prototype = {
 
     create: function () {
-    	sprite = game.add.sprite(0, 0, 'player');
+    	sprite = game.add.sprite(32, 32, 'player');
 
     	game.physics.arcade.enable(sprite);
     	sprite.body.collideWorldBounds = true;
