@@ -46,6 +46,9 @@ Player.prototype = {
     	sprite.body.velocity.set(0, 0);
 
 	    var v = 100;
+	    if(game.input.keyboard.isDown(Phaser.Keyboard.SHIFT)){
+	    	v = 400;
+	    }
 	    if(!movementLocked){
 		    if(game.input.keyboard.isDown(Phaser.Keyboard.W)){
 		        sprite.body.velocity.y -= v;
@@ -92,7 +95,7 @@ Player.prototype = {
 
 	    if(game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)){
 		    if(touchingDoor && (sprite.animations.name == 'N' || sprite.animations.name == 'NW' || sprite.animations.name == 'NE')){
-		    	game.camera.fade('#000000', 1000);
+		    	game.camera.fade(0x000000, 1000);
 		    	movementLocked = true;
 			}
 		}
