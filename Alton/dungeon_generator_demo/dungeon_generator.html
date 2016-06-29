@@ -1,0 +1,84 @@
+<!doctype html> 
+<html lang="en"> 
+<head> 
+    <meta charset="UTF-8" />
+    <title>dungeon generator</title>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/phaser/2.4.7/phaser.min.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+            background-color: #233037;
+        }
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+
+<script type="text/javascript">
+
+var game = new Phaser.Game(384, 384, Phaser.AUTO, '', { preload: preload, create: create, update: update, render: render }, false, false);
+
+function preload() {
+    game.scale.pageAlignHorizontally = true;
+    game.scale.pageAlignVertically = true;
+    game.scale.scaleMode = Phaser.ScaleManager.USER_SCALE;
+    game.width = window.innerWidth/2 - 16;
+    game.height = window.innerHeight/2 - 16;
+    //if(window.innerWidth >= game.width * 2 && window.innerHeight + 1 >= game.height * 2)
+        //game.scale.setUserScale(2, 2, 0, 0);
+
+    game.renderer.renderSession.roundPixels = false;
+    Phaser.Canvas.setImageRenderingCrisp(this.game.canvas);
+}
+
+var dungeon = [];
+var dungeonImage;
+var dungeonImageCopy;
+
+function create(){
+    for(var x = 0; x < game.width; x++){
+        dungeon.push([]);
+        for(var y = 0; y < game.height; y++){
+            dungeon[x].push(0);
+        }
+    }
+
+    dungeonImage = game.make.bitmapData(game.width, game.height);
+    dungeonImageCopy = game.make.bitmapData(game.width, game.height);
+    dungeonImage.fill(255, 255, 255, 0);
+
+
+    // This was supposed to reset the background pixel by pixel.
+    // It's really slow and crashes the browser.
+
+    /* for(var x = 0; x < dungeon.length; x++){
+        for(var y = 0; y < dungeon[0].length; y++){
+            if(((x + y) % 100) == 0){
+                dungeonImage.setPixel(x, y, 255, 0, 0, 255, false);
+            }
+            else {
+                dungeonImage.setPixel(x, y, 0, 255, 0, 255, false);
+            }
+        }
+    } */
+
+    dungeonImageCopy.copy(dungeonImage, 0, 0);
+    dungeonImageCopy.addToWorld();
+
+    console.log('finished');
+}
+
+function update(){
+
+}
+
+function render(){
+    
+}
+
+</script>
+
+</body>
+</html>
