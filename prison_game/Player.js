@@ -1,5 +1,5 @@
 var Player = function(){
-	
+
 };
 
 Player.prototype = {
@@ -9,6 +9,7 @@ Player.prototype = {
 
     	game.physics.arcade.enable(sprite);
     	sprite.body.collideWorldBounds = true;
+    	sprite.body.setSize(8, 19, 4, 12);
 
     	var fps = 16;
     	sprite.animations.add('NW', [240, 241, 242, 243, 244, 245, 246], fps, true);

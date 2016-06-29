@@ -35,6 +35,10 @@ Game.GameState.prototype = {
     	layer = map.createLayer('FirstRoom');
     	layer.resizeWorld();
 
+    	map.setCollision(10);
+    	map.setCollision(11);
+    	map.setCollision(57);
+
     	player = new Player();
     	player.create();
 
@@ -42,6 +46,8 @@ Game.GameState.prototype = {
    	},
 
    	update: function () {
+   		game.physics.arcade.collide(sprite, layer);
+
    		player.update();
    	},
 
