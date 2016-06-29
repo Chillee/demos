@@ -23,6 +23,8 @@ Game.GameState.prototype = {
     },
 
     create: function () {
+		game.stage.backgroundColor = '#1c1824';
+		
     	player = new Player();
     	player.create();
    	},
