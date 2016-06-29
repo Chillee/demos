@@ -7,6 +7,7 @@ Game.GameState = function (game) {
 var player;
 var map;
 var layer;
+var topLayer;
 
 Game.GameState.prototype = {
 
@@ -41,6 +42,8 @@ Game.GameState.prototype = {
 
     	player = new Player();
     	player.create();
+
+    	topLayer = map.createLayer('AbovePlayer');
 
     	game.camera.follow(sprite, Phaser.Camera.FOLLOW_TOPDOWN_TIGHT);
    	},

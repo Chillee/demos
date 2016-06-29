@@ -21,6 +21,8 @@ Player.prototype = {
 	    sprite.animations.add('SW', [336, 337, 338, 339, 340, 341, 342, 343], fps, true);
 	    sprite.animations.add('W', [288, 289, 290, 291, 292, 293, 294, 295], fps, true);
 	    sprite.animations.add('idle', [0], 5, true);
+
+	    sprite.animations.play('S');
     },
 
     update: function () {
@@ -67,7 +69,7 @@ Player.prototype = {
 	    }
 	    else {
 	        //  Stand still
-	        sprite.animations.play('idle');
+	        sprite.animations.stop(null, true);
 	    }
     },
 
