@@ -4,8 +4,10 @@
     <meta charset="UTF-8" />
     <title>Phaser - Making your first game, part 8</title>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/phaser/2.4.7/phaser.min.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
-
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+    <script src="peer.js"></script>
+<!--     <script src="http://cdn.peerjs.com/0.3.14/peer.js"></script>
+ -->
     <style type="text/css">
         body {
             margin: 0;
@@ -16,27 +18,81 @@
         }
     </style>
 </head>
+<input id='connect'><button>Connect</button><input type='checkbox' id='isReceiving'>
 <body>
 
 <script type="text/javascript">
 
-function getAppPath() {
-    var pathArray = location.pathname.split('/');
-    var appPath = "/";
-    for(var i=1; i<pathArray.length-1; i++) {
-        appPath += pathArray[i] + "/";
-    }
-    return appPath;
+var game = new Phaser.Game(384, 384, Phaser.AUTO, '', { preload: preload, create: create, update: update, render: render }, false, false);
+// var peer = new Peer(Math.random().toString(36).substr(2, 2),{
+//   host: location.hostname,
+//   port: location.port || (location.protocol === 'https:' ? 443 : 80),
+//   path: '/peerjs'
+// })
+var peerString = Math.random().toString(36).substr(2, 2);
+var peer = new Peer(peerString,{key: 'lwjd5qra8257b9'});
+var connect;
+var state;
+var isReceiving;
+var conn;
+var peerData = [];
+var offset  = 0;
+for (var i=0; i<120; i++){
+  peerData = peerData.concat({tick:0, velocityX: 0, velocityY: 0, x: 50, y: 150});
 }
 
-console.log(getAppPath());
-var game = new Phaser.Game(384, 384, Phaser.AUTO, '', { preload: preload, create: create, update: update, render: render }, false, false);
+console.log(peerData);
+console.log(peer);
+peer.on('connection', function(conn){
+  console.log(conn);
+  conn.bufferSize = 100000;
+  offset = Date.now() - conn.metadata;
+  isReceiving = false;
+  connect = conn;
+})
+var prevRecieved = Date.now();
+var connectionData = {}
+$('#isReceiving').change(function(){
+  isReceiving = this.checked;
+  if (isReceiving){
+    player.body = null;
+    conn.on('data', function(data){
+        if (Date.now() - prevRecieved > 150){
+          console.log(Date.now() - prevRecieved, data.tick - peerData[0].tick);
+        }
+        if (connectionData[data.random - peerData[0].random]){
+          connectionData[data.random - peerData[0].random]++;
+        } else {
+          connectionData[data.random - peerData[0].random] = 1;
+        }
+        prevRecieved = Date.now();
+          for (var i=peerData.length-1; i>=1; i--){
+            peerData[i] = peerData[i-1];
+          }
+          peerData[0]= data;
+
+        })
+      setInterval(function(){
+        console.log(connectionData);
+      }, 5000);
+    }
+})
+$('button').click(function(e){
+  e.preventDefault;
+  conn = peer.connect($('#connect').val(), {
+    reliable: false,
+    metadata: Date.now()
+  });
+})
+
+
 
 function preload() {
     game.scale.pageAlignHorizontally = true;
     game.scale.pageAlignVertically = true;
     game.scale.scaleMode = Phaser.ScaleManager.USER_SCALE;
-    if(window.innerWidth >= game.width * 2 && window.innerHeight + 1 >= game.height * 2) game.scale.setUserScale(2, 2, 0, 0);
+    if(window.innerWidth >= game.width * 2 && window.innerHeight + 1 >= game.height * 2)
+        game.scale.setUserScale(2, 2, 0, 0);
 
     game.renderer.renderSession.roundPixels = false;
     Phaser.Canvas.setImageRenderingCrisp(this.game.canvas);
@@ -51,30 +107,14 @@ var player;
 var platforms;
 var cursors;
 var particleEmitter;
-var numPlayers=0;
-var shiftKey;
-var onlineVelocity;
-
-var socket = io();
-var ping=0;
-socket.on('players', function(num){
-  numPlayers = num;
-});
-socket.on('playerVelocity', function(data){
-  console.dir(data.pingTime);
-  console.log(Date.now());
-  player.body.velocity = data.velocity;
-  player.x = data.x;
-  player.y = data.y;
-  ping = Date.now() - data.pingTime;
-})
-
 
 function create() {
 
     game.stage.backgroundColor = "#233037";
+    game.stage.disableVisibilityChange = true;
 
     //  We're going to be using physics, so enable the Arcade Physics system
+    game.physics.startSystem(Phaser.Physics.ARCADE);
     //  A simple background for our game
 
     //  The platforms group contains the ground and the 2 ledges we can jump on
@@ -172,7 +212,6 @@ function create() {
     //  Player physics properties. Give the little guy a slight bounce.
     player.body.gravity.y = 1200;
     player.body.collideWorldBounds = true;
-    onlineVelocity = player.body.velocity;
 
     particleEmitter = game.add.emitter(0, 0, 100);
     particleEmitter.makeParticles('tinysheet', 24, 16, false, false);
@@ -199,12 +238,9 @@ function create() {
 
     //  Our controls.
     cursors = game.input.keyboard.createCursorKeys();
-    shiftKey = game.input.keyboard.addKey(Phaser.KeyCode.SHIFT);
 
     game.input.onDown.add(click, this);
     game.time.advancedTiming = true;
-
-
 }
 
 function setParticleDefaults(){
@@ -249,10 +285,8 @@ function click() {
 }
 
 function render() {
-    game.debug.text(game.time.fps + ' fps', 2, 14, '#FFFFFF');
+    // game.debug.text(game.time.fps + ' fps', 2, 14, '#FFFFFF');
     game.debug.bodyInfo(player, 32, 32);
-    game.debug.text(numPlayers,50, 150);;
-    game.debug.text(ping, 150, 150);
 }
 
 var previousVelocity;
@@ -279,11 +313,12 @@ function collisionCallback(p, platform){
     return true;
 }
 
+var frameCount = 0;
 function update() {
 
     //game.debug.bodyInfo(player, 32, 32);
     //  Collide the player and the stars with the platforms
-    game.physics.arcade.collide(player, platforms, collisionCallback, processCallback);
+    // game.physics.arcade.collide(player, platforms, collisionCallback, processCallback);
     // game.physics.arcade.collide(particleEmitter, platforms);
 
     setParticleDefaults();
@@ -291,80 +326,102 @@ function update() {
     particleEmitter.forEachAlive(function(p){       p.alpha= p.lifespan / particleEmitter.lifespan; });
 
     //  Reset the players velocity (movement)
-    if (shiftKey.isDown){
+    if (isReceiving === false){
+      game.physics.arcade.collide(player, platforms, collisionCallback, processCallback);
+
       player.body.velocity.x = 0;
-       var moving = false;
-          if (cursors.left.isDown && !cursors.right.isDown)
-          {
-              //  Move to the left
-              player.body.velocity.x = -150;
 
-              player.animations.play('left');
-              moving = true;
-          }
-          if (cursors.right.isDown && !cursors.left.isDown)
-          {
-              //  Move to the right
+      var moving = false;
+      if (cursors.left.isDown && !cursors.right.isDown)
+      {
+          //  Move to the left
+          player.body.velocity.x = -150;
+
+          player.animations.play('left');
+          moving = true;
+      }
+      if (cursors.right.isDown && !cursors.left.isDown)
+      {
+          //  Move to the right
+          player.body.velocity.x = 150;
+
+          player.animations.play('right');
+          moving = true;
+      }
+      if(game.input.pointer1.isDown && game.input.pointer1.y > game.height / 2){
+          if(game.input.pointer1.x > game.width / 2) {
               player.body.velocity.x = 150;
-
               player.animations.play('right');
-              moving = true;
           }
-          if(game.input.pointer1.isDown && game.input.pointer1.y > game.height / 2){
-              if(game.input.pointer1.x > game.width / 2) {
-                  player.body.velocity.x = 150;
-                  player.animations.play('right');
-              }
-              else {
-                  player.body.velocity.x = -150;
-                  player.animations.play('left');
-              }
-              moving = true;
+          else {
+              player.body.velocity.x = -150;
+              player.animations.play('left');
           }
-          if(game.input.pointer2.isDown && game.input.pointer2.y > game.height / 2){
-              if(game.input.pointer2.x > game.width / 2) {
-                  player.body.velocity.x = 150;
-                  player.animations.play('right');
-              }
-              else {
-                  player.body.velocity.x = -150;
-                  player.animations.play('left');
-              }
-              moving = true;
+          moving = true;
+      }
+      if(game.input.pointer2.isDown && game.input.pointer2.y > game.height / 2){
+          if(game.input.pointer2.x > game.width / 2) {
+              player.body.velocity.x = 150;
+              player.animations.play('right');
           }
-          if(!moving) player.animations.play('idle');
+          else {
+              player.body.velocity.x = -150;
+              player.animations.play('left');
+          }
+          moving = true;
+      }
+      if(!moving) player.animations.play('idle');
 
-          
-          //  Allow the player to jump if they are touching the ground.
-          if (cursors.up.isDown && player.body.touching.down)
-          {
-              player.body.velocity.y = -350;
-          }
-        var data = {};
-        data['velocity'] = player.body.velocity;
-        data['x'] = player.x;
-        data['y'] = player.y;
-        data['pingTime'] = Date.now();
-        socket.emit('velocity', data);
-
-    } 
-    var moving = false;
-    if (player.body.velocity.x == -150){
-      player.animations.play('left');
-      moving  = true;
+      
+      //  Allow the player to jump if they are touching the ground.
+      if (cursors.up.isDown && player.body.touching.down)
+      {
+          player.body.velocity.y = -350;
+      }
+      // console.log(offset);
+      var randomInfo = [];
+      for (var i=0; i<0; i++){
+        randomInfo.push(Math.random());
+      }
+      if (frameCount%1 == 0){
+        for (var i=0; i<1; i++){
+          connect.send({tick: Date.now(),
+                      velocityX: player.body.velocity.x,
+                      velocityY: player.body.velocity.y,
+                   x: player.x,
+                   y: player.y,
+                   random: frameCount})
+        }
+      }
+      frameCount++;
+      
+  } else {
+    // console.log(peerData[0]);
+    var idx = 0;  
+    var minDist = 10000;
+    var curTime = Date.now()+10000;
+    for (var i=0; i<peerData.length; i++){
+      // console.log(Math.abs(peerData[i].tick- curTime));
+      if (Math.abs(peerData[i].tick- curTime) < minDist){
+        idx = i;
+        minDist = Math.abs(peerData[i].tick - curTime);
+      }
     }
-    if (player.body.velocity.x == 150){
-      player.animations.play('right');
-      moving = true;
-    }
-    if (!moving){
-      player.animations.play('idle');
-    }
+    // console.log(idx, minDist, Date.now()-60);
+    // console.log(peerData);
+    game.debug.text(peerString, 5, 15);
+    game.debug.text(idx, 10, 100);
+    game.debug.text(peerData[0].tick-peerData[1].tick, 5, 150);
+    // console.log(peerData[0].tick, Date.now(),Date.now() - peerData[0].tick,peerData[0].tick);
+    // console.log(peerData[0].tick-peerData[1].tick);
+    // console.log(  new Date(peerData[0].tick) - new Date(Date.now()));
 
 
-    
-
-   
+    // player.body.velocity.x = peerData[idx].velocityX;
+    // player.body.velocity.y = peerData[idx].velocityY;
+    player.x = peerData[idx].x;
+    player.y = peerData[idx].y;
+  }
 
 }
 

@@ -1,416 +1,58 @@
-<!doctype html> 
-<html lang="en"> 
-<head> 
-    <meta charset="UTF-8" />
-    <title>Phaser - Making your first game, part 8</title>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/phaser/2.4.7/phaser.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
-    <script src="http://cdn.peerjs.com/0.3.14/peer.js"></script>
-    <style type="text/css">
-        body {
-            margin: 0;
-            background-color: #233037;
-        }
-        canvas {
-            border: 1px solid black;
-        }
-    </style>
-</head>
-<input id='connect'><button>Connect</button><input type='checkbox' id='isReceiving'>
-<body>
-
+<script src="p2p-client.js"></script>
 <script type="text/javascript">
-
-var game = new Phaser.Game(384, 384, Phaser.AUTO, '', { preload: preload, create: create, update: update, render: render }, false, false);
-// var peer = new Peer(Math.random().toString(36).substr(2, 2),{
-//   host: location.hostname,
-//   port: location.port || (location.protocol === 'https:' ? 443 : 80),
-//   path: '/peerjs'
-// })
-var peerString = Math.random().toString(36).substr(2, 2);
-var peer = new Peer(peerString,{key: 'lwjd5qra8257b9'});
-var connect;
-var state;
-var isReceiving;
-var conn;
-var peerData = [];
-var offset  = 0;
-for (var i=0; i<120; i++){
-  peerData = peerData.concat({tick:0, velocityX: 0, velocityY: 0, x: 50, y: 150});
-}
-
-console.log(peerData);
-console.log(peer);
-peer.on('connection', function(conn){
-  console.log(conn);
-  offset = Date.now() - conn.metadata;
-  isReceiving = false;
-  connect = conn;
-})
-var prevRecieved = Date.now();
-var connectionData = {}
-$('#isReceiving').change(function(){
-  isReceiving = this.checked;
-  if (isReceiving){
-    conn.on('data', function(data){
-        // console.log(Date.now() - prevRecieved);
-        if (Date.now() - prevRecieved > 40){
-          console.log(Date.now() - prevRecieved, data.tick - peerData[0].tick);
-        }
-        if (connectionData[data.tick - peerData[0].tick]){
-          connectionData[data.tick - peerData[0].tick]++;
-        } else {
-          connectionData[data.tick - peerData[0].tick] = 1;
-        }
-        prevRecieved = Date.now();
-          for (var i=peerData.length-1; i>=1; i--){
-            peerData[i] = peerData[i-1];
-          }
-          peerData[0]= data;
-
-        })
-      setInterval(function(){
-        console.log(connectionData);
-      }, 5000);
-    }
-})
-$('button').click(function(e){
-  e.preventDefault;
-  conn = peer.connect($('#connect').val(), {
-    reliable: true,
-    metadata: Date.now()
-  });
-})
-
-
-
-function preload() {
-    game.scale.pageAlignHorizontally = true;
-    game.scale.pageAlignVertically = true;
-    game.scale.scaleMode = Phaser.ScaleManager.USER_SCALE;
-    if(window.innerWidth >= game.width * 2 && window.innerHeight + 1 >= game.height * 2)
-        game.scale.setUserScale(2, 2, 0, 0);
-
-    game.renderer.renderSession.roundPixels = false;
-    Phaser.Canvas.setImageRenderingCrisp(this.game.canvas);
-
-    game.load.spritesheet('bear', 'assets/tileset.png', 32, 32);
-    game.load.spritesheet('sheet', 'assets/tileset.png', 16, 16);
-    game.load.spritesheet('tinysheet', 'assets/tileset.png', 4, 4);
-
-}
-
-var player;
-var platforms;
-var cursors;
-var particleEmitter;
-
-function create() {
-
-    game.stage.backgroundColor = "#233037";
-    game.stage.disableVisibilityChange = true;
-
-    //  We're going to be using physics, so enable the Arcade Physics system
-    game.physics.startSystem(Phaser.Physics.ARCADE);
-    //  A simple background for our game
-
-    //  The platforms group contains the ground and the 2 ledges we can jump on
-    platforms = game.add.group();
-
-    //  We will enable physics for any object that is created in this group
-    platforms.enableBody = true;
-
-    // Here we create the ground.
-
-    var level = [
-    '                        ',
-    '                        ',
-    '               2222     ',
-    '                        ',
-    '           22           ',
-    '                        ',
-    '     2222               ',
-    '                        ',
-    '          22222         ',
-    '                        ',
-    '                  222   ',
-    '                        ',
-    '             222        ',
-    '                        ',
-    '                        ',
-    '       1223             ',
-    '       8..4b            ',
-    '       8..0222222       ',
-    '                        ',
-    '                   123  ',
-    '   a1223b         a8.4b ',
-    '22229..0222222222229.022',
-    '........................',
-    '........................',
-    '........................'
-    ]
-
-    for(var y = 0; y < level.length; y++){
-        for(var x = 0; x < level[y].length; x++){
-            if(level[y].charAt(x) != ' '){
-                //console.log(x * 16 + ", " + y * 16);
-                var tile = 0;
-                var collide = true;
-                switch(level[y].charAt(x)){
-                    case '1':
-                        tile = 68;
-                        break;
-                    case '2':
-                        tile = 0;
-                        break;
-                    case '3':
-                        tile = 70;
-                        break;
-                    case '4':
-                        tile = 3;
-                        break;
-                    case '8':
-                        tile = 34;
-                        break;
-                    case '9':
-                        tile = 130;
-                        break;
-                    case '0':
-                        tile = 129;
-                        break;
-                    case 'a':
-                        tile = 4;
-                        collide = false;
-                        break;
-                    case 'b':
-                        tile = 5;
-                        collide = false;
-                        break;
-                    default:
-                        tile = 6;
-                        break;
-                }
-                var platform = platforms.create(x * 16, y * 16, 'sheet', tile);
-                platform.body.setSize(16, 16, 0, 0);
-                platform.body.immovable = true;
-                platform.body.enable = collide;
-            }
-        }
-    }
-
-    // The player and its settings
-    player = game.add.sprite(32, game.world.height - 150, 'bear');
-
-    //  We need to enable physics on the player
-    game.physics.arcade.enable(player);
-    player.body.setSize(22, 24, 5, 8);
-    player.body.debug = true;
-
-    //  Player physics properties. Give the little guy a slight bounce.
-    player.body.gravity.y = 1200;
-    player.body.collideWorldBounds = true;
-
-    particleEmitter = game.add.emitter(0, 0, 100);
-    particleEmitter.makeParticles('tinysheet', 24, 16, false, false);
-    //particleEmitter.gravity = 800;
-    particleEmitter.minRotation = 0;
-    particleEmitter.maxRotation = 0;
-    setParticleDefaults();
-    particleEmitter.particleDrag.x = 100;
-    particleEmitter.particleDrag.y = 100;
-    particleEmitter.particleBringToTop = true;
-
-    //  Our two animations, walking left and right.
-    var right = player.animations.add('right', [8, 9, 10, 11, 12, 13, 14, 15], 15, true);
-    var left = player.animations.add('left', [24, 25, 26, 27, 28, 29, 30, 31], 15, true);
-    player.animations.add('idle', [52, 53, 54, 55], 5, true);
-
-    right.enableUpdate = true;
-    right.onUpdate.add(rightFrameUpdate, this);
-    left.enableUpdate = true;
-    left.onUpdate.add(leftFrameUpdate, this);
-
-    //game.camera.follow(player, Phaser.Camera.FOLLOW_PLATFORMER);
-    game.camera.roundPx = true;
-
-    //  Our controls.
-    cursors = game.input.keyboard.createCursorKeys();
-
-    game.input.onDown.add(click, this);
-    game.time.advancedTiming = true;
-}
-
-function setParticleDefaults(){
-    particleEmitter.maxParticleSpeed.y = -100;
-    particleEmitter.minParticleSpeed.y = -75;
-    particleEmitter.maxParticleSpeed.x = -20;
-    particleEmitter.minParticleSpeed.x = 20;
-}
-
-function setParticleGround(){
-    particleEmitter.maxParticleSpeed.y = -100;
-    particleEmitter.minParticleSpeed.y = -75;
-    particleEmitter.maxParticleSpeed.x = -125;
-    particleEmitter.minParticleSpeed.x = 125;
-}
-
-function rightFrameUpdate(){
-    if(player.body.touching.down && (player.animations.frame == 9 || player.animations.frame == 13)){
-        particleEmitter.x = player.body.x + player.body.halfWidth;
-        particleEmitter.y = player.body.y + player.body.height * .8;
-        
-        particleEmitter.start(false, 500, 100, 1);
-    }
-}
-
-function leftFrameUpdate(){
-    if(player.body.touching.down && (player.animations.frame == 25 || player.animations.frame == 29)){
-        particleEmitter.x = player.body.x + player.body.halfWidth;
-        particleEmitter.y = player.body.y + player.body.height * .8;
-        
-        particleEmitter.start(false, 500, 100, 1);
-    }
-}
-
-function click() {
-    if(game.input.pointer1.isDown && game.input.pointer1.y < game.height / 2 && player.body.touching.down){
-        player.body.velocity.y = -350;
-    }
-    if(game.input.pointer2.isDown && game.input.pointer2.y < game.height / 2 && player.body.touching.down){
-        player.body.velocity.y = -350;
-    }
-}
-
-function render() {
-    // game.debug.text(game.time.fps + ' fps', 2, 14, '#FFFFFF');
-    game.debug.bodyInfo(player, 32, 32);
-}
-
-var previousVelocity;
-function processCallback(p, platform){
-    previousVelocity = p.body.velocity.y;
-    return true;
-}
-
-function collisionCallback(p, platform){
-    if(p.body.touching.down && !p.body.wasTouching.down){
-        setParticleGround();
-
-        var shake = 0;
-        if(previousVelocity > 400) shake = .005;
-        if(previousVelocity > 480) shake = .01;
-        if(previousVelocity > 550) shake = .02;
-        game.camera.shake(shake, 100, true);
-
-        particleEmitter.x = p.body.x + p.body.halfWidth;
-        particleEmitter.y = p.body.y + p.body.height * .8;
-
-        particleEmitter.start(true, 500, null, 5);
-    }
-    return true;
-}
-
-function update() {
-
-    //game.debug.bodyInfo(player, 32, 32);
-    //  Collide the player and the stars with the platforms
-    game.physics.arcade.collide(player, platforms, collisionCallback, processCallback);
-    // game.physics.arcade.collide(particleEmitter, platforms);
-
-    setParticleDefaults();
-
-    particleEmitter.forEachAlive(function(p){       p.alpha= p.lifespan / particleEmitter.lifespan; });
-
-    //  Reset the players velocity (movement)
-    if (isReceiving === false){
-      player.body.velocity.x = 0;
-
-      var moving = false;
-      if (cursors.left.isDown && !cursors.right.isDown)
-      {
-          //  Move to the left
-          player.body.velocity.x = -150;
-
-          player.animations.play('left');
-          moving = true;
-      }
-      if (cursors.right.isDown && !cursors.left.isDown)
-      {
-          //  Move to the right
-          player.body.velocity.x = 150;
-
-          player.animations.play('right');
-          moving = true;
-      }
-      if(game.input.pointer1.isDown && game.input.pointer1.y > game.height / 2){
-          if(game.input.pointer1.x > game.width / 2) {
-              player.body.velocity.x = 150;
-              player.animations.play('right');
-          }
-          else {
-              player.body.velocity.x = -150;
-              player.animations.play('left');
-          }
-          moving = true;
-      }
-      if(game.input.pointer2.isDown && game.input.pointer2.y > game.height / 2){
-          if(game.input.pointer2.x > game.width / 2) {
-              player.body.velocity.x = 150;
-              player.animations.play('right');
-          }
-          else {
-              player.body.velocity.x = -150;
-              player.animations.play('left');
-          }
-          moving = true;
-      }
-      if(!moving) player.animations.play('idle');
-
-      
-      //  Allow the player to jump if they are touching the ground.
-      if (cursors.up.isDown && player.body.touching.down)
-      {
-          player.body.velocity.y = -350;
-      }
-      // console.log(offset);
-        for (var i=0; i<1; i++){
-          connect.send({tick: Date.now(),
-                      velocityX: player.body.velocity.x,
-                      velocityY: player.body.velocity.y,
-                   x: player.x,
-                   y: player.y})
-        }
-      
-  } else {
-    var idx = 0;  
-    var minDist = 10000;
-    var curTime = Date.now();
-    for (var i=0; i<peerData.length; i++){
-      // console.log(Math.abs(peerData[i].tick- curTime));
-      if (Math.abs(peerData[i].tick- curTime) < minDist){
-        idx = i;
-        minDist = Math.abs(peerData[i].tick - curTime);
-      }
-    }
-    // console.log(idx, minDist, Date.now()-60);
-    // console.log(peerData);
-    game.debug.text(peerString, 5, 15);
-    game.debug.text(idx, 10, 100);
-    game.debug.text(peerData[0].tick-peerData[1].tick, 5, 150);
-    // console.log(peerData[0].tick, Date.now(),Date.now() - peerData[0].tick,peerData[0].tick);
-    // console.log(peerData[0].tick-peerData[1].tick);
-    // console.log(  new Date(peerData[0].tick) - new Date(Date.now()));
-
-
-    player.body.velocity.x = peerData[idx].velocityX;
-    player.body.velocity.y = peerData[idx].velocityY;
-    player.x = peerData[idx].x;
-    player.y = peerData[idx].y;
+var peer = new Peer(
+  'wss://webrtc-p2p-broker.herokuapp.com', // You can use this broker if you don't want to set one up
+  {
+    binaryType: 'arraybuffer',
+    video: false,
+    audio: false
   }
+);
 
-}
+// Listen for incoming connections
+peer.listen();
 
+var connections = {};
+
+// Handle new connections
+peer.onconnection = function(connection) {
+  // Store connections here so we can use them later
+  connections[connection.id] = connection; // Each connection has a unique ID
+
+  connection.ondisconnect = function(reason) {
+    delete connections[connection.id];
+  };
+
+  connection.onerror = function(error) {
+    console.error(error);
+  };
+
+  // Handle messages from this channel
+  // The label will be 'reliable' or 'unreliable', depending on how it was received
+  connection.onmessage = function(label, message) {
+    console.log(label, message);
+  };
+
+  // Sends a message to the other peer using the reliable data channel
+  connection.send('reliable', 'hi!');
+
+  // The connection exposes the underlying media streams
+  // You can attach them to DOM elements to get video/audio, if available
+  console.log(connection.streams.local, connection.streams.remote);
+
+  // Closes the connection
+  // This will cause `ondisconnect` to fire
+  connection.close();
+};
+
+// Print our route when it's available
+peer.onroute = function(route) {
+  // This is our routing address from the broker
+  // It's used by peers who wish to connect with us
+  console.log('route:', route);
+};
+
+peer.onerror = function(error) {
+  console.log(error);
+};
 </script>
-
-</body>
-</html>
