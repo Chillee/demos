@@ -1,6 +1,6 @@
-<!doctype html> 
-<html lang="en"> 
-<head> 
+<!doctype html>
+<html lang="en">
+<head>
     <meta charset="UTF-8" />
     <title>Animator</title>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/phaser/2.4.7/phaser.min.js"></script>
@@ -26,7 +26,7 @@ function preload() {
     game.scale.scaleMode = Phaser.ScaleManager.USER_SCALE;
     if(window.innerWidth >= game.width * 2 && window.innerHeight + 1 >= game.height * 2) game.scale.setUserScale(2, 2, 0, 0);
 
-    game.renderer.renderSession.roundPixels = true;  
+    game.renderer.renderSession.roundPixels = true;
     Phaser.Canvas.setImageRenderingCrisp(this.game.canvas);
 
     game.load.spritesheet('sheet', 'tileset.png', 16, 32);
@@ -43,27 +43,27 @@ function create() {
 
     for(var i = 0; i < 24 * 48 ; i += 48){
 	var sprite = game.add.sprite(0, 32 * (i / 48), 'sheet');
-       	sprite.animations.add('default', [i, 1+i, 2+i, 3+i, 4+i, 5+i, 6+i, 7+i], 15, true);
+        sprite.animations.add('default', [i, 1+i, 2+i, 3+i, 4+i, 5+i, 6+i, 7+i], 15, true);
 	sprite.animations.play('default');
         animations.push(sprite);
 
     //for(var i = 0; i < 24 * 48 ; i += 48){
-	//var sprite = game.add.sprite(0, 48 * (i / 48), 'sheet');	
+	//var sprite = game.add.sprite(0, 48 * (i / 48), 'sheet');
 	//sprite.animations.add('default', [8+i, 9+i, 10+i, 11+i, 12+i, 13+i, 14+i, 15+i,], 15, true);
         sprite.animations.play('default');
         animations.push(sprite);
- 
-	
+
+
 
     }
 }
 
 function render() {
-    
+
 }
 
 function update() {
-    
+
 }
 
 </script>
