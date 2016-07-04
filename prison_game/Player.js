@@ -4,6 +4,7 @@ var Player = function(){
 
 var touchingDoor = false;
 var movementLocked = false;
+var doorTouching;
 
 Player.prototype = {
 
@@ -11,7 +12,7 @@ Player.prototype = {
     	sprite = game.add.sprite(32, 32, 'player');
 
     	game.physics.arcade.enable(sprite);
-    	sprite.body.collideWorldBounds = true;
+    	sprite.body.collideWorldBounds = false;
     	sprite.body.setSize(8, 19, 4, 12);
 
     	var fps = 16;
@@ -28,13 +29,15 @@ Player.prototype = {
 	    sprite.animations.play('S');
 
 	    game.camera.onFadeComplete.add(function() {
-			var tileX = Math.floor(sprite.body.x / 16);
-			var tileY = Math.floor(sprite.body.y / 16);
 
-			if(tileX == 3 && tileY == 2) sprite.position.set(20 * 16, 26 * 16);
-			if(tileX == 25 && tileY == 4) sprite.position.set(3 * 16, 2 * 16);
-			if(tileX == 20 && tileY == 26) sprite.position.set(25 * 16, 4 * 16);
+	    	doors.forEach(function(door){
+	    		if(door.ID == doorTouching.pairID){
+	    			sprite.position.set(door.body.x, door.body.y);
+	    		}
+	    	});
 
+	    	game.camera.focusOn(sprite);
+	    	sprite.animations.play('S');
 			movementLocked = false;
 
 			game.camera.flash('#000000', 1000);
@@ -50,16 +53,16 @@ Player.prototype = {
 	    	v = 400;
 	    }
 	    if(!movementLocked){
-		    if(game.input.keyboard.isDown(Phaser.Keyboard.W)){
+		    if(game.input.keyboard.isDown(Phaser.Keyboard.UP)){
 		        sprite.body.velocity.y -= v;
 		    }
-		    if(game.input.keyboard.isDown(Phaser.Keyboard.A)){
+		    if(game.input.keyboard.isDown(Phaser.Keyboard.LEFT)){
 		        sprite.body.velocity.x -= v;
 		    }
-		    if(game.input.keyboard.isDown(Phaser.Keyboard.S)){
+		    if(game.input.keyboard.isDown(Phaser.Keyboard.DOWN)){
 		        sprite.body.velocity.y += v;
 		    }
-		    if(game.input.keyboard.isDown(Phaser.Keyboard.D)){
+		    if(game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)){
 		        sprite.body.velocity.x += v;
 		    }
 		}
@@ -107,8 +110,8 @@ Player.prototype = {
     	
     },
 
-    touchingDoor: function() {
-    	console.log("touched door");
+    touchingDoor: function(sprite, door) {
+    	doorTouching = door;
     	touchingDoor = true;
     }
 };
