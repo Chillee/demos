@@ -34,7 +34,7 @@ Game.GameState.prototype = {
 
 		map = game.add.tilemap('map');
 		map.addTilesetImage('tileset', 'tiles');
-		layer = map.createLayer('FirstRoom');
+		layer = map.createLayer('Under');
 		layer.resizeWorld();
 
 		map.setCollision(10);
@@ -53,7 +53,7 @@ Game.GameState.prototype = {
 		player = new Player();
 		player.create();
 
-		topLayer = map.createLayer('AbovePlayer');
+		topLayer = map.createLayer('Over');
 
 		game.camera.follow(sprite, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
 	},
