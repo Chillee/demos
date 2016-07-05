@@ -5,10 +5,13 @@ var Player = function(){
 var touchingDoor = false;
 var movementLocked = false;
 var doorTouching;
+var parent;
 
 Player.prototype = {
 
-    create: function () {
+    create: function (state) {
+    	parent = state;
+
     	sprite = game.add.sprite(10 * 16, 7 * 16, 'player');
 
     	game.physics.arcade.enable(sprite);
@@ -29,7 +32,9 @@ Player.prototype = {
 	    sprite.animations.play('S');
 
 	    game.camera.onFadeComplete.add(function() {
-
+	    	if(doorTouching.pairMap != currentMapID){
+	    		parent.loadMap(doorTouching.pairMap);
+	    	}
 	    	doors.forEach(function(door){
 	    		if(door.ID == doorTouching.pairID){
 	    			sprite.position.set(door.body.x, door.body.y);
