@@ -27,7 +27,7 @@ Player.prototype = {
     	sprite.body.setSize(8, 19, 4, 12);
 
     	var fps = 16;
-    	sprite.animations.add('NW', [240, 241, 242, 243, 244, 245, 246], fps, true);
+    	sprite.animations.add('NW', [240, 241, 242, 243, 244, 245, 246, 247], fps, true);
 	    sprite.animations.add('N', [192, 193, 194, 195, 196, 197, 198, 199], fps, true);
 	    sprite.animations.add('NE', [144, 145, 146, 147, 148, 149, 150, 151], fps, true);
 	    sprite.animations.add('E', [96, 97, 98, 99, 100, 101, 102, 103], fps, true);
