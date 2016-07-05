@@ -24,12 +24,13 @@ Game.GameState.prototype = {
 		game.renderer.renderSession.roundPixels = true;
 		Phaser.Canvas.setImageRenderingCrisp(this.game.canvas);
 
-		game.load.spritesheet('player', 'assets/tileset.png', 16, 32);
+		game.load.spritesheet('player', 'assets/mobset.png', 16, 32);
 
 		game.load.tilemap('room0', 'assets/room0.json', null, Phaser.Tilemap.TILED_JSON);
 		game.load.tilemap('room1', 'assets/room1.json', null, Phaser.Tilemap.TILED_JSON);
 		game.load.image('tiles', 'assets/tileset.png');
 		game.load.spritesheet('tileset', 'assets/tileset.png', 16, 16);
+		game.load.spritesheet('fxset', 'assets/fxset.png', 16, 16);
 	},
 
 	loadMap: function(mapID) {
@@ -41,21 +42,21 @@ Game.GameState.prototype = {
 		layer.resizeWorld();
 		currentMapID = mapID;
 
-		map.setCollision(10);
-		map.setCollision(11);
-		map.setCollision(57);
-		map.setCollisionBetween(12, 15);
-		map.setCollisionBetween(60, 63);
-		map.setCollisionBetween(108, 111);
+		map.setCollision(2);
+		map.setCollision(3);
+		map.setCollision(49);
+		map.setCollisionBetween(4, 7);
+		map.setCollisionBetween(52, 54);
+		map.setCollisionBetween(100, 103);
 
 		doors = game.add.group();
 		doors.enableBody = true;
-		map.createFromObjects('Doors', 59, 'tileset', 58, true, false, doors);
+		map.createFromObjects('Doors', 51, 'tileset', 50, true, false, doors);
 		doors.forEach(function(door){
 			door.body.immovable = true;
 		});
 
-		sprite.bringToTop();
+		player.bringToTop();
 
 		topLayer = map.createLayer('Over');
 	},

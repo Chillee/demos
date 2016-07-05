@@ -6,6 +6,10 @@ var touchingDoor = false;
 var movementLocked = false;
 var doorTouching;
 var parent;
+var directionX;
+var directionY;
+
+var interactAnimation;
 
 Player.prototype = {
 
@@ -13,6 +17,10 @@ Player.prototype = {
     	parent = state;
 
     	sprite = game.add.sprite(10 * 16, 7 * 16, 'player');
+    	interactAnimation = game.add.sprite(0, 0, 'fxset');
+    	interactAnimation.kill();
+
+    	interactAnimation.animations.add('spark', [0, 1, 2, 3, 4, 5], 20, false);
 
     	game.physics.arcade.enable(sprite);
     	sprite.body.collideWorldBounds = false;
@@ -30,6 +38,8 @@ Player.prototype = {
 	    sprite.animations.add('idle', [0], 5, true);
 
 	    sprite.animations.play('S');
+	    directionX = 0;
+	    directionY = 1;
 
 	    game.camera.onFadeComplete.add(function() {
 	    	if(doorTouching.pairMap != currentMapID){
@@ -43,6 +53,8 @@ Player.prototype = {
 
 	    	game.camera.focusOn(sprite);
 	    	sprite.animations.play('S');
+	    	directionX = 0;
+	    	directionY = 1;
 			movementLocked = false;
 
 			game.camera.flash('#000000', 1000);
@@ -50,7 +62,6 @@ Player.prototype = {
     },
 
     update: function () {
-
     	sprite.body.velocity.set(0, 0);
 
 	    var v = 100;
@@ -70,6 +81,23 @@ Player.prototype = {
 		    if(game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)){
 		        sprite.body.velocity.x += v;
 		    }
+		    if(game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)){
+			    if(touchingDoor && (sprite.animations.name == 'N' || sprite.animations.name == 'NW' || sprite.animations.name == 'NE')){
+			    	game.camera.fade(0x000000, 1000, true);
+			    	movementLocked = true;
+				}
+				if(!interactAnimation.alive){
+					interactAnimation.revive();
+					interactAnimation.x = sprite.x + (directionX * 16);
+					interactAnimation.y = sprite.y + 16 + (directionY * 16);
+					interactAnimation.animations.play('spark', null, null, true);
+				}
+			}
+		}
+
+		if(sprite.body.velocity.x != 0 || sprite.body.velocity.y != 0){
+			directionX = Math.sign(sprite.body.velocity.x);
+			directionY = Math.sign(sprite.body.velocity.y);
 		}
 
 	    if(sprite.body.velocity.x == -v && sprite.body.velocity.y == -v){
@@ -101,18 +129,16 @@ Player.prototype = {
 	        sprite.animations.stop(null, true);
 	    }
 
-	    if(game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)){
-		    if(touchingDoor && (sprite.animations.name == 'N' || sprite.animations.name == 'NW' || sprite.animations.name == 'NE')){
-		    	game.camera.fade(0x000000, 1000);
-		    	movementLocked = true;
-			}
-		}
-
 	    touchingDoor = false;
     },
 
     render: function () {
     	
+    },
+
+    bringToTop: function () {
+    	sprite.bringToTop();
+    	interactAnimation.bringToTop();
     },
 
     touchingDoor: function(sprite, door) {
