@@ -20,7 +20,7 @@ Player.prototype = {
     	interactAnimation = game.add.sprite(0, 0, 'fxset');
     	interactAnimation.kill();
 
-    	interactAnimation.animations.add('spark', [0, 1, 2, 3, 4, 5], 20, false);
+    	interactAnimation.animations.add('spark', [0, 1, 2, 3, 4, 5], 30, false);
 
     	game.physics.arcade.enable(sprite);
     	sprite.body.collideWorldBounds = false;
