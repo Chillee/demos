@@ -9,7 +9,7 @@ var doorTouching;
 Player.prototype = {
 
     create: function () {
-    	sprite = game.add.sprite(32, 32, 'player');
+    	sprite = game.add.sprite(10 * 16, 7 * 16, 'player');
 
     	game.physics.arcade.enable(sprite);
     	sprite.body.collideWorldBounds = false;

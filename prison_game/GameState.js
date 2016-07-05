@@ -55,7 +55,7 @@ Game.GameState.prototype = {
 
 		topLayer = map.createLayer('Over');
 
-		game.camera.follow(sprite, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
+		game.camera.follow(sprite, Phaser.Camera.FOLLOW_LOCKON);
 	},
 
 	update: function () {
