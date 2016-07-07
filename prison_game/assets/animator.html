@@ -29,8 +29,8 @@ function preload() {
     game.renderer.renderSession.roundPixels = true;
     Phaser.Canvas.setImageRenderingCrisp(this.game.canvas);
 
-    game.load.spritesheet('sheet', 'mobset.png', 16, 32);
-    game.load.image('sheetImage', 'mobset.png');
+    game.load.spritesheet('sheet', 'fxset.png', 16, 32);
+    game.load.image('sheetImage', 'fxset.png');
 
 }
 
@@ -43,7 +43,7 @@ function create() {
 
     for(var i = 0; i < 24 * 48 ; i += 48){
 	var sprite = game.add.sprite(0, 32 * (i / 48), 'sheet');
-       	sprite.animations.add('default', [i, 1+i, 2+i, 3+i, 4+i, 5+i, 6+i, 7+i], 15, true);
+       	sprite.animations.add('default', [i, 1+i, 2+i, 3+i, 4+i, 5+i, 6+i, 7+i, 8+i, 9+i, 10+i, 11+i, 12+i, 13+i, 14+i, 15+i,], 15, true);
 	sprite.animations.play('default');
         animations.push(sprite);
 
